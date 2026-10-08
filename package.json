@@ -1,0 +1,10 @@
+{
+  "name": "moons-kitchen-website",
+  "private": true,
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}

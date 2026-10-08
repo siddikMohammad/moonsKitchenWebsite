@@ -1,0 +1,147 @@
+/* ============================================
+   Moon's Kitchen — Login / OTP page
+   ============================================ */
+
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 70% 30%, color-mix(in srgb, var(--gold) 20%, transparent) 0%, transparent 55%),
+    linear-gradient(160deg, var(--sand) 0%, var(--ivory) 70%);
+}
+
+.login-wrap {
+  width: 100%;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border-radius: 22px;
+  padding: 40px 34px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--ink) 18%, transparent);
+  text-align: center;
+}
+
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--choc);
+  margin-bottom: 10px;
+}
+
+.login-logo .logo-text small { color: var(--gold-deep); }
+
+.login-sub {
+  font-size: 0.92rem;
+  margin-bottom: 2em;
+}
+
+.login-form { text-align: left; }
+.login-form.hidden { display: none; }
+
+.login-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--gold-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 0.6em;
+}
+
+.login-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 1.4em;
+  border: 1.5px solid var(--line);
+  background: var(--ivory);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.login-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent);
+}
+
+.login-otp-input {
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.login-btn { width: 100%; }
+.login-btn:disabled { opacity: 0.7; cursor: wait; transform: none; }
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.2em;
+}
+.login-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--choc);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.login-link:hover { color: var(--gold-deep); }
+.login-link:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.login-google.hidden { display: none; }
+#googleBtn {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1.6em 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.login-back {
+  display: inline-block;
+  margin-top: 1em;
+  color: var(--choc);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.login-back:hover { color: var(--gold-deep); }
+
+.login-error {
+  min-height: 1.4em;
+  margin: 1.2em 0 0;
+  color: #b3261e;
+  font-size: 0.88rem;
+}

@@ -1,0 +1,29 @@
+<svg width="1500" height="360" viewBox="0 0 1500 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0c874"/>
+      <stop offset="100%" stop-color="#c8891f"/>
+    </linearGradient>
+    <filter id="moonGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <mask id="crescentMask">
+      <circle cx="170" cy="180" r="130" fill="#fff"/>
+      <circle cx="170" cy="118" r="124" fill="#000"/>
+    </mask>
+  </defs>
+
+  <!-- small crescent moon, tilted to match the site's moon icon -->
+  <g filter="url(#moonGlow)" transform="rotate(-35 170 180)">
+    <circle cx="170" cy="180" r="130" fill="url(#goldGrad)" mask="url(#crescentMask)"/>
+  </g>
+
+  <!-- wordmark, single line -->
+  <text x="345" y="225" text-anchor="start"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="140" fill="#f3ece0" font-weight="400">Moon's <tspan fill="url(#goldGrad)" font-style="italic">Kitchen</tspan></text>
+</svg>

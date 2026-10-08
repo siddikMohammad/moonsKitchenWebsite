@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Moon's Kitchen</title>
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+<link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
+<meta name="description" content="Moon's Kitchen — slow-baked cookies, brownies, cupcakes and ragi specials, ground from real grain. Order directly on WhatsApp." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Shared icons -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-wa" viewBox="0 0 32 32"><path fill="currentColor" d="M16.04 3C9.37 3 3.98 8.39 3.98 15.06c0 2.24.6 4.34 1.66 6.15L3 29l7.99-2.58a12.02 12.02 0 0 0 5.05 1.11h.01c6.67 0 12.06-5.39 12.06-12.06C28.11 8.39 22.72 3 16.04 3zm0 21.9h-.01a9.94 9.94 0 0 1-5.06-1.39l-.36-.22-4.74 1.53 1.55-4.62-.24-.38a9.9 9.9 0 0 1-1.53-5.28c0-5.48 4.46-9.94 9.95-9.94 2.66 0 5.15 1.04 7.03 2.92a9.87 9.87 0 0 1 2.91 7.03c0 5.48-4.46 9.95-9.5 9.95zm5.45-7.45c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.63-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.5-.17-.01-.37-.01-.57-.01s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></g></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.8 9.8 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></symbol>
+    <symbol id="i-ig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"/></g></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c3-4 6-6 9-8"/></g></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 21c-4 0-6.5-2.7-6.5-6.2 0-3.7 3-5.6 4-9.3 2.6 1.7 4 4 3.8 6.6 1-.6 1.7-1.6 2-2.8 1.8 1.6 3.2 3.4 3.2 5.6 0 3.5-2.5 6.1-6.5 6.1z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></g></symbol>
+    <symbol id="i-chat"viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 5h16v11H9l-5 4z"/></symbol>
+  </svg>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="notice">🌙 Freshly baked to order &middot; Order directly on WhatsApp</div>
+
+  <!-- HEADER -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-main container">
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+
+      <a href="#home" class="logo logo-name">Moon's <em>Kitchen</em></a>
+
+      <div class="header-actions">
+        <div class="account" id="account">
+          <a href="login.html" class="account-btn" id="accountLogin"><svg><use href="#i-user"/></svg><span>Login</span></a>
+          <button type="button" class="account-btn hidden" id="accountToggle" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenu">
+            <span class="account-initial" id="accountInitial"></span><span id="accountName">Account</span>
+          </button>
+          <div class="account-menu hidden" id="accountMenu">
+            <p class="account-email" id="accountEmail"></p>
+            <button type="button" class="account-logout" id="accountLogout">Log out</button>
+          </div>
+        </div>
+        <a href="https://www.instagram.com/moons_kitchen11/" class="icon-btn icon-btn-ig" target="_blank" rel="noopener noreferrer" aria-label="Moon's Kitchen on Instagram"><svg><use href="#i-ig"/></svg></a>
+        <a href="#" class="icon-btn whatsapp-catalog-link" aria-label="View WhatsApp catalog"><svg><use href="#i-grid"/></svg></a>
+        <a href="#" class="icon-btn icon-btn-wa whatsapp-link" data-item="a chat" aria-label="Chat on WhatsApp"><svg><use href="#i-wa"/></svg></a>
+      </div>
+    </div>
+
+    <nav class="subnav" aria-label="Main">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#ragi-cookies">Cookies</a></li>
+        <li><a href="#brownies">Brownies</a></li>
+        <li><a href="#cupcakes">Cupcakes</a></li>
+        <li><a href="#about">About Us</a></li>
+        <li class="nav-drawer-only"><a href="#" class="whatsapp-link" data-item="a chat">Order on WhatsApp</a></li>
+        <li class="nav-drawer-only nav-drawer-ig"><a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer">Follow on Instagram</a></li>
+      </ul>
+    </nav>
+    <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+  </header>
+  <div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main>
+
+    <!-- HERO SLIDER -->
+    <section class="hero" id="home" aria-roledescription="carousel" aria-label="Featured bakes">
+      <div class="hero-track" id="heroTrack">
+
+        <div class="hero-slide is-active" aria-roledescription="slide" aria-label="1 of 3">
+          <div class="container hero-inner">
+            <div class="hero-copy">
+              <p class="eyebrow">Home Baked &middot; Millet &amp; Grain</p>
+              <h1>Slow-baked cookies, ground from <em>real grain.</em></h1>
+              <p class="hero-sub">Ragi, jowar &amp; millet bakes made fresh in a home kitchen &mdash; just for you.</p>
+              <div class="hero-actions">
+                <a href="#ragi-cookies" class="btn btn-dark">Shop the Menu</a>
+                <a href="#" class="btn btn-wa whatsapp-link" data-item="a chat"><svg class="btn-icon"><use href="#i-wa"/></svg>Order on WhatsApp</a>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <img src="assets/images/Image1.jpeg" alt="Ragi chocolate cookies with almonds">
+              <span class="float float-1" aria-hidden="true">🍪</span>
+              <span class="float float-2" aria-hidden="true">🌾</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-slide" aria-roledescription="slide" aria-label="2 of 3">
+          <div class="container hero-inner">
+            <div class="hero-copy">
+              <p class="eyebrow">Festive Favourite</p>
+              <h1>Kesar Pista <em>Cookies</em></h1>
+              <p class="hero-sub">Saffron and pistachio, loaded generously on every crunchy bite.</p>
+              <div class="hero-actions">
+                <a href="#" class="btn btn-dark whatsapp-link" data-item="Kesar Pista Cookies">Order Now</a>
+                <a href="#" class="btn btn-outline whatsapp-catalog-link"><svg class="btn-icon"><use href="#i-grid"/></svg>View Catalog</a>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <img src="assets/images/Image3.jpeg" alt="Kesar pista cookies topped with pistachios" loading="lazy">
+              <span class="float float-1" aria-hidden="true">🥜</span>
+              <span class="float float-2" aria-hidden="true">✨</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-slide" aria-roledescription="slide" aria-label="3 of 3">
+          <div class="container hero-inner">
+            <div class="hero-copy">
+              <p class="eyebrow">Made to Order</p>
+              <h1>Baked after you order. <em>Never off a shelf.</em></h1>
+              <p class="hero-sub">Tell us what you're craving &mdash; we'll bake it fresh and get it ready for you.</p>
+              <div class="hero-actions">
+                <a href="#" class="btn btn-wa whatsapp-link" data-item="a chat"><svg class="btn-icon"><use href="#i-wa"/></svg>Chat with Us</a>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <img src="assets/images/Image2.jpeg" alt="Almond oats cookies" loading="lazy">
+              <span class="float float-1" aria-hidden="true">🧁</span>
+              <span class="float float-2" aria-hidden="true">🍫</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="hero-dots" id="heroDots" role="tablist" aria-label="Choose slide">
+        <button class="is-active" aria-label="Slide 1"></button>
+        <button aria-label="Slide 2"></button>
+        <button aria-label="Slide 3"></button>
+      </div>
+    </section>
+
+    <!-- BROWSE CATEGORIES -->
+    <section class="section categories">
+      <div class="container">
+        <h2 class="section-title reveal">Browse Categories</h2>
+        <div class="cat-row reveal">
+          <a href="#ragi-cookies" class="cat">
+            <span class="cat-circle"><img src="assets/images/Image5.jpeg" alt="" loading="lazy"></span>
+            <span class="cat-name">Ragi Cookies</span>
+          </a>
+          <a href="#ragi-special" class="cat">
+            <span class="cat-circle"><img src="assets/images/Image1.jpeg" alt="" loading="lazy"></span>
+            <span class="cat-name">Ragi Special</span>
+          </a>
+          <a href="#brownies" class="cat">
+            <span class="cat-circle cat-emoji" data-photo="brownie" style="--tile:#e9cbb8">🍫</span>
+            <span class="cat-name">Brownies</span>
+          </a>
+          <a href="#cupcakes" class="cat">
+            <span class="cat-circle cat-emoji" data-photo="chococup" style="--tile:#f6d3dc">🧁</span>
+            <span class="cat-name">Cupcakes</span>
+          </a>
+          <a href="#classic-cookies" class="cat">
+            <span class="cat-circle cat-emoji" data-photo="chocchip" style="--tile:#f3e1c4">🍪</span>
+            <span class="cat-name">Classic Cookies</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- BESTSELLERS -->
+    <section class="section" id="bestsellers">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="section-title">Bestsellers</h2>
+          <a href="#ragi-cookies" class="view-all">View All</a>
+        </div>
+        <div class="product-row reveal">
+
+          <article class="product-card">
+            <div class="product-media product-media-emoji" data-photo="grain" style="--tile:#f3dcc0">
+              <span class="badge">Bestseller</span>🍪
+            </div>
+            <div class="product-body">
+              <h3>Millet Cookies (15+ Dryfruits)</h3>
+              <p class="price-note">Price on request</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Millet Cookies (15+ Dryfruits)"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><span class="badge">Popular</span><img src="assets/images/Image1.jpeg" alt="Ragi Chocolate Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Ragi Chocolate Cookies</h3>
+              <p class="price-note">Price on request</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Ragi Chocolate Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><span class="badge">Festive</span><img src="assets/images/Image3.jpeg" alt="Kesar Pista Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Kesar Pista Cookies</h3>
+              <p class="price-note">Price on request</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Kesar Pista Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image2.jpeg" alt="Almonds Oats Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Almonds Oats Cookies</h3>
+              <p class="price-note">Price on request</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Almonds Oats Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image4.jpeg" alt="Fruit Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Fruit Cookies</h3>
+              <p class="price-note">Price on request</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Fruit Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FULL RANGE: SIGNATURE RAGI COOKIES -->
+    <section class="section section-tint" id="ragi-cookies">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2 class="section-title">Signature Ragi Cookies</h2>
+            <p class="section-sub">Every item is baked fresh to order &mdash; message us for pricing, quantities &amp; availability.</p>
+          </div>
+          <a href="#" class="view-all whatsapp-catalog-link">View Catalog</a>
+        </div>
+        <div class="product-grid reveal">
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image5.jpeg" alt="Ragi Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Ragi Cookies</h3>
+              <p class="product-desc">Classic ragi flour cookies &mdash; subtly sweet, wholesome and crumbly.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Ragi Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image1.jpeg" alt="Ragi Chocolate Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Ragi Chocolate Cookies</h3>
+              <p class="product-desc">Our classic ragi cookie swirled with rich chocolate.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Ragi Chocolate Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image4.jpeg" alt="Fruit Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Fruit Cookies</h3>
+              <p class="product-desc">Loaded with mixed dried fruits in every bite.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Fruit Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media product-media-emoji" data-photo="grain" style="--tile:#eedfc6">🌾</div>
+            <div class="product-body">
+              <h3>Multigrain Cookies</h3>
+              <p class="product-desc">A wholesome blend of grains baked into one crunchy cookie.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Multigrain Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image3.jpeg" alt="Kesar Pista Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Kesar Pista Cookies</h3>
+              <p class="product-desc">Saffron and pistachio &mdash; a festive favourite.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Kesar Pista Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media"><img src="assets/images/Image2.jpeg" alt="Almonds Oats Cookies" loading="lazy"></div>
+            <div class="product-body">
+              <h3>Almonds Oats Cookies</h3>
+              <p class="product-desc">Crunchy rolled oats and roasted almonds, lightly sweetened.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Almonds Oats Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media product-media-emoji" data-photo="grain" style="--tile:#f1e6cf">🍪</div>
+            <div class="product-body">
+              <h3>Jowar Cookies</h3>
+              <p class="product-desc">Light, fibre-rich jowar flour cookies.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Jowar Cookies"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+          <article class="product-card product-card-featured">
+            <div class="product-media product-media-emoji" data-photo="grain" style="--tile:#f3dcc0"><span class="badge">Bestseller</span>🍪</div>
+            <div class="product-body">
+              <h3>Millet Cookies</h3>
+              <p class="product-desc"><strong>15+ Dryfruits.</strong> Our most loved cookie, packed with premium dry fruits.</p>
+              <a href="#" class="order-btn whatsapp-link" data-item="Millet Cookies (15+ Dryfruits)"><svg><use href="#i-wa"/></svg>Order</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- INSTAGRAM REELS (cards below are shown until reel links are added in js/script.js) -->
+    <section class="section reels" id="reels">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2 class="section-title">Reels</h2>
+            <p class="section-sub">Fresh from our kitchen &mdash; follow along on Instagram.</p>
+          </div>
+          <a href="https://www.instagram.com/moons_kitchen11/" class="view-all" target="_blank" rel="noopener noreferrer">Follow @moons_kitchen11</a>
+        </div>
+        <div class="reel-row reveal" id="reelRow">
+          <a href="https://www.instagram.com/moons_kitchen11/" class="reel-card" target="_blank" rel="noopener noreferrer">
+            <img src="assets/images/Image1.jpeg" alt="" loading="lazy">
+            <span class="reel-top"><span class="reel-avatar"><svg><use href="#i-moon"/></svg></span>moons_kitchen11</span>
+            <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg></span>
+            <span class="reel-caption">Ragi chocolate hearts, fresh out of the oven</span>
+            <span class="reel-ig"><svg><use href="#i-ig"/></svg>Watch on Instagram</span>
+          </a>
+          <a href="https://www.instagram.com/moons_kitchen11/" class="reel-card" target="_blank" rel="noopener noreferrer">
+            <img src="assets/images/Image3.jpeg" alt="" loading="lazy">
+            <span class="reel-top"><span class="reel-avatar"><svg><use href="#i-moon"/></svg></span>moons_kitchen11</span>
+            <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg></span>
+            <span class="reel-caption">Loading up the Kesar Pista batch</span>
+            <span class="reel-ig"><svg><use href="#i-ig"/></svg>Watch on Instagram</span>
+          </a>
+          <a href="https://www.instagram.com/moons_kitchen11/" class="reel-card" target="_blank" rel="noopener noreferrer">
+            <img src="assets/images/Image4.jpeg" alt="" loading="lazy">
+            <span class="reel-top"><span class="reel-avatar"><svg><use href="#i-moon"/></svg></span>moons_kitchen11</span>
+            <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg></span>
+            <span class="reel-caption">Fruit cookies, packed with dried berries</span>
+            <span class="reel-ig"><svg><use href="#i-ig"/></svg>Watch on Instagram</span>
+          </a>
+          <a href="https://www.instagram.com/moons_kitchen11/" class="reel-card" target="_blank" rel="noopener noreferrer">
+            <img src="assets/images/Image2.jpeg" alt="" loading="lazy">
+            <span class="reel-top"><span class="reel-avatar"><svg><use href="#i-moon"/></svg></span>moons_kitchen11</span>
+            <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg></span>
+            <span class="reel-caption">Almond oats — crunchy, golden, done</span>
+            <span class="reel-ig"><svg><use href="#i-ig"/></svg>Watch on Instagram</span>
+          </a>
+          <a href="https://www.instagram.com/moons_kitchen11/" class="reel-card" target="_blank" rel="noopener noreferrer">
+            <img src="assets/images/Image5.jpeg" alt="" loading="lazy">
+            <span class="reel-top"><span class="reel-avatar"><svg><use href="#i-moon"/></svg></span>moons_kitchen11</span>
+            <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg></span>
+            <span class="reel-caption">Our classic ragi cookies, star-shaped</span>
+            <span class="reel-ig"><svg><use href="#i-ig"/></svg>Watch on Instagram</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY FEATURE ROWS -->
+    <section class="section">
+      <div class="container feature-stack">
+
+        <div class="feature-row reveal" id="ragi-special">
+          <div class="feature-intro">
+            <h3>Ragi Special</h3>
+            <p>Our signature ragi range, made five ways.</p>
+            <a href="#" class="btn btn-dark btn-sm whatsapp-link" data-item="the Ragi Special range">Order on WhatsApp</a>
+            <img src="assets/images/Image1.jpeg" alt="" class="feature-img" loading="lazy">
+          </div>
+          <div class="feature-track">
+            <a href="#" class="tile whatsapp-link" data-item="Ragi Special – Almond"><span class="tile-media" data-photo="almond" style="--tile:#f1dfc9">🌰</span><span class="tile-name">Almond</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Ragi Special – Dry Fruit"><span class="tile-media" data-photo="dryfruit" style="--tile:#f5d9cc">🍇</span><span class="tile-name">Dry Fruit</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Ragi Special – Cashew"><span class="tile-media" data-photo="cashew" style="--tile:#f3e4cd">🥜</span><span class="tile-name">Cashew</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Ragi Special – Millet"><span class="tile-media" data-photo="grain" style="--tile:#eee3c8">🌾</span><span class="tile-name">Millet</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Ragi Special – Whole Wheat"><span class="tile-media" data-photo="grain" style="--tile:#efdcc3">🍞</span><span class="tile-name">Whole Wheat</span><span class="tile-cta">Order →</span></a>
+          </div>
+        </div>
+
+        <div class="feature-row reveal" id="brownies">
+          <div class="feature-intro">
+            <h3>Brownies</h3>
+            <p>Fudgy, chewy or cakey &mdash; plus bite-sized brownie bits.</p>
+            <a href="#" class="btn btn-dark btn-sm whatsapp-link" data-item="Brownies / Brownie Bits">Order on WhatsApp</a>
+            <span class="feature-emoji" data-photo="brownie" aria-hidden="true">🍫</span>
+          </div>
+          <div class="feature-track">
+            <a href="#" class="tile whatsapp-link" data-item="Fudge Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#e7cdbd">🍫</span><span class="tile-name">Fudge Brownie</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Chewy Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#e9d3c4">🍫</span><span class="tile-name">Chewy Brownie</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Cakey Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#ecd8ca">🍰</span><span class="tile-name">Cakey Brownie</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Triple Chocolate Brownie Bits"><span class="tile-media" data-photo="bits" style="--tile:#e3c6b6">🟫</span><span class="tile-name">Triple Chocolate <small>Bits</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Dark Chocolate Brownie Bits"><span class="tile-media" data-photo="bits" style="--tile:#dfc1b1">🟤</span><span class="tile-name">Dark Chocolate <small>Bits</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="White Chocolate Brownie Bits"><span class="tile-media" data-photo="white" style="--tile:#f3e6da">🤍</span><span class="tile-name">White Chocolate <small>Bits</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Dark &amp; White Chocolate Brownie Bits"><span class="tile-media" data-photo="darkwhite" style="--tile:#e8d6c8">🍫</span><span class="tile-name">Dark &amp; White <small>Bits</small></span><span class="tile-cta">Order →</span></a>
+          </div>
+        </div>
+
+        <div class="feature-row reveal" id="cupcakes">
+          <div class="feature-intro">
+            <h3>Cupcakes</h3>
+            <p>Soft, frosted and baked in seven flavours.</p>
+            <a href="#" class="btn btn-dark btn-sm whatsapp-link" data-item="Cupcakes">Order on WhatsApp</a>
+            <span class="feature-emoji" data-photo="strawcup" aria-hidden="true">🧁</span>
+          </div>
+          <div class="feature-track">
+            <a href="#" class="tile whatsapp-link" data-item="Chocolate Cupcakes"><span class="tile-media" data-photo="chococup" style="--tile:#e7cdbd">🧁</span><span class="tile-name">Chocolate</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Vanilla Cupcakes"><span class="tile-media" data-photo="vanillacup" style="--tile:#f6ead6">🧁</span><span class="tile-name">Vanilla</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Pineapple Cupcakes"><span class="tile-media" data-photo="pinecup" style="--tile:#f8e7bd">🍍</span><span class="tile-name">Pineapple</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Butterscotch Cupcakes"><span class="tile-media" data-photo="bscup" style="--tile:#f3dcb6">🧁</span><span class="tile-name">Butterscotch</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Rasmalai Cupcakes"><span class="tile-media" data-photo="vanillacup" style="--tile:#f7e4cf">🧁</span><span class="tile-name">Rasmalai</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Strawberry Cupcakes"><span class="tile-media" data-photo="strawcup" style="--tile:#f8d3da">🍓</span><span class="tile-name">Strawberry</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Pista Cupcakes"><span class="tile-media" data-photo="pistacup" style="--tile:#e2ecd0">🧁</span><span class="tile-name">Pista</span><span class="tile-cta">Order →</span></a>
+          </div>
+        </div>
+
+        <div class="feature-row reveal" id="classic-cookies">
+          <div class="feature-intro">
+            <h3>Classic Cookies</h3>
+            <p>The timeless favourites, baked the home way.</p>
+            <a href="#" class="btn btn-dark btn-sm whatsapp-link" data-item="Classic Cookies">Order on WhatsApp</a>
+            <span class="feature-emoji" data-photo="chocchip" aria-hidden="true">🍪</span>
+          </div>
+          <div class="feature-track">
+            <a href="#" class="tile whatsapp-link" data-item="Vanilla Cookies"><span class="tile-media" data-photo="vanillacook" style="--tile:#f6ead6">🍪</span><span class="tile-name">Vanilla</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Chocolate Chip Cookies"><span class="tile-media" data-photo="chocchip" style="--tile:#ecd6c2">🍪</span><span class="tile-name">Chocolate Chip</span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Butter Cookies"><span class="tile-media" data-photo="butter" style="--tile:#f5e3c0">🧈</span><span class="tile-name">Butter Cookies</span><span class="tile-cta">Order →</span></a>
+          </div>
+        </div>
+
+        <p class="menu-footnote reveal">More flavours available on request &mdash; just ask us on WhatsApp.</p>
+      </div>
+    </section>
+
+    <!-- OUR PROMISE / ABOUT -->
+    <section class="promise" id="about">
+      <div class="container promise-inner">
+        <div class="promise-copy reveal">
+          <p class="eyebrow">Our Promise</p>
+          <h2>Baked slow.<br>Ground real.</h2>
+          <blockquote>&ldquo;Good food doesn't need shortcuts.&rdquo;</blockquote>
+          <p>Moon's Kitchen is a home bakery built around one simple idea. Every batch starts with whole grains
+            like ragi, jowar and millet, slow-baked so the flavour (and the goodness) actually stays in.</p>
+          <p>No factory lines &mdash; just fresh bakes made to order, exactly the way home baking should be.</p>
+          <div class="promise-stats">
+            <div><strong>Real Grain</strong><span>Ragi, jowar &amp; millet</span></div>
+            <div><strong>Small Batch</strong><span>Slow-baked at home</span></div>
+            <div><strong>To Order</strong><span>Nothing sits on a shelf</span></div>
+          </div>
+          <a href="#" class="btn btn-dark whatsapp-link" data-item="a chat">Talk to Us</a>
+        </div>
+        <div class="promise-visual reveal">
+          <img src="assets/images/Image4.jpeg" alt="Freshly baked fruit cookies" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS (cards are built from the TESTIMONIALS list in js/script.js) -->
+    <section class="section testimonials" id="reviews">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2 class="section-title">Kind Words</h2>
+            <p class="section-sub">What our customers say about their Moon's Kitchen bakes.</p>
+          </div>
+          <div class="testi-nav" id="testiNav" hidden>
+            <button class="testi-arrow" data-dir="-1" aria-label="Previous reviews"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+            <button class="testi-arrow" data-dir="1" aria-label="Next reviews"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="testi-track" id="testiTrack"></div>
+        <div class="testi-cta reveal">
+          <p>Tried our bakes? We'd love to hear from you.</p>
+          <a href="#" class="btn btn-dark btn-sm whatsapp-review-link"><svg class="btn-icon"><use href="#i-wa"/></svg>Share Your Review</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq" id="faq">
+      <div class="container faq-inner">
+        <div class="faq-intro reveal">
+          <p class="eyebrow">Good to Know</p>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p>Everything you need to know about ordering from Moon's Kitchen.</p>
+          <div class="faq-help">
+            <strong>Still have a question?</strong>
+            <span>We usually sort everything out over a quick chat.</span>
+            <a href="#" class="btn btn-dark btn-sm whatsapp-link" data-item="a chat"><svg class="btn-icon"><use href="#i-wa"/></svg>Ask on WhatsApp</a>
+          </div>
+        </div>
+        <div class="faq-list" id="faqList">
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a0" id="faq-q0">
+                  <span>How do I place an order?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a0" role="region" aria-labelledby="faq-q0"><div><p>Tap any <strong>Order</strong> button on this page &mdash; WhatsApp opens with that item already filled in. Send the message and we'll confirm price, quantity and pickup or delivery with you over chat.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a1" id="faq-q1">
+                  <span>Why aren't prices listed on the website?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a1" role="region" aria-labelledby="faq-q1"><div><p>Every bake is made fresh to order in small batches, so the price depends on the item and how much you need. Message us on WhatsApp and we'll share current prices straight away.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a2" id="faq-q2">
+                  <span>What grains do you bake with?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a2" role="region" aria-labelledby="faq-q2"><div><p>Our bakes are built around whole grains like <strong>ragi, jowar and millet</strong>, slow-baked so the flavour and goodness stay in &mdash; no factory shortcuts.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a3" id="faq-q3">
+                  <span>Is everything freshly baked?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a3" role="region" aria-labelledby="faq-q3"><div><p>Yes. We bake after you order, so nothing sits on a shelf &mdash; your box is made just for you.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a4" id="faq-q4">
+                  <span>Can I ask for a flavour that isn't on the menu?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a4" role="region" aria-labelledby="faq-q4"><div><p>Of course. More flavours are available on request &mdash; tell us what you're craving on WhatsApp and we'll let you know what we can bake.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a5" id="faq-q5">
+                  <span>Do you offer pickup or delivery?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a5" role="region" aria-labelledby="faq-q5"><div><p>Both can be arranged. Share your location when you order on WhatsApp and we'll sort out pickup or delivery with you over chat.</p></div></div>
+            </div>
+            <div class="faq-item">
+              <h3 class="faq-q">
+                <button type="button" aria-expanded="false" aria-controls="faq-a6" id="faq-q6">
+                  <span>Where can I see more of your bakes?</span><span class="faq-icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq-a" id="faq-a6" role="region" aria-labelledby="faq-q6"><div><p>Browse our <a href="#" class="whatsapp-catalog-link">WhatsApp catalog</a> or follow us on Instagram at <a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer">@moons_kitchen11</a> for fresh batches and reels.</p></div></div>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST STRIP -->
+    <section class="trust">
+      <div class="container trust-row">
+        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-clock"/></svg></span><div><strong>Baked to Order</strong><span>Never off a shelf</span></div></div>
+        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-leaf"/></svg></span><div><strong>Real Grain</strong><span>Ragi, jowar &amp; millet</span></div></div>
+        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-flame"/></svg></span><div><strong>Slow Baked</strong><span>Small home batches</span></div></div>
+        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-chat"/></svg></span><div><strong>Easy Ordering</strong><span>Straight on WhatsApp</span></div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-sky" aria-hidden="true">
+      <div class="footer-stars" id="footerStars"></div>
+      <span class="footer-moon"></span>
+    </div>
+
+    <div class="container footer-cta reveal">
+      <div>
+        <p class="eyebrow">Baked under the moon</p>
+        <h3>Craving something fresh?</h3>
+        <p>Message us tonight &mdash; we'll bake it fresh for you.</p>
+      </div>
+      <a href="#" class="btn btn-gold whatsapp-link" data-item="a chat"><svg class="btn-icon"><use href="#i-wa"/></svg>Order on WhatsApp</a>
+    </div>
+
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="#home" class="logo logo-name logo-footer">Moon's <em>Kitchen</em></a>
+        <p>Small-batch millet &amp; grain cookies, brownies and cupcakes, baked to order in a home kitchen with ragi, jowar and millet. Made with love, under the moon.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg><use href="#i-ig"/></svg></a>
+          <a href="#" class="whatsapp-link" data-item="a chat" aria-label="WhatsApp"><svg><use href="#i-wa"/></svg></a>
+          <a href="#" class="whatsapp-catalog-link" aria-label="WhatsApp catalog"><svg><use href="#i-grid"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="#ragi-cookies">Ragi Cookies</a></li>
+          <li><a href="#ragi-special">Ragi Special</a></li>
+          <li><a href="#brownies">Brownies</a></li>
+          <li><a href="#cupcakes">Cupcakes</a></li>
+          <li><a href="#classic-cookies">Classic Cookies</a></li>
+          <li><a href="#bestsellers">Bestsellers</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#faq" data-faq="0">How to Order</a></li>
+          <li><a href="#faq" data-faq="5">Pickup &amp; Delivery</a></li>
+          <li><a href="#faq" data-faq="1">Pricing</a></li>
+          <li><a href="#faq">FAQs</a></li>
+          <li><a href="#reviews">Share a Review</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul class="footer-contact">
+          <li><svg><use href="#i-wa"/></svg><a href="#" class="whatsapp-link" data-item="a chat" id="footerPhone">WhatsApp us</a></li>
+          <li><svg><use href="#i-ig"/></svg><a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer">@moons_kitchen11</a></li>
+          <li><svg><use href="#i-grid"/></svg><a href="#" class="whatsapp-catalog-link">WhatsApp Catalog</a></li>
+        </ul>
+        <p class="footer-note">Home kitchen &middot; Baked fresh after you order</p>
+      </div>
+    </div>
+    <div class="footer-wordmark reveal" aria-hidden="true"><span>Moon's Kitchen</span></div>
+
+    <div class="container footer-bottom">
+      <div>
+        <p>&copy; <span id="year"></span> Moon's Kitchen. All rights reserved.</p>
+        <p class="photo-credit">Some product photos via <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.</p>
+      </div>
+      <ul class="footer-tags" aria-label="How we work">
+        <li>Made to Order</li>
+        <li>WhatsApp Orders</li>
+        <li>Pickup &amp; Delivery</li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="to-top" id="toTop" aria-label="Back to top"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M6 15l6-6 6 6"/></svg></button>
+
+  <!-- Floating WhatsApp button -->
+  <a href="#" class="fab-whatsapp whatsapp-link" data-item="a chat" aria-label="Order on WhatsApp"><svg><use href="#i-wa"/></svg></a>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

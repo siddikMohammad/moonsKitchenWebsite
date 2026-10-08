@@ -1,0 +1,53 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="34%" r="75%">
+      <stop offset="0%" stop-color="#3a2a44"/>
+      <stop offset="55%" stop-color="#1f1729"/>
+      <stop offset="100%" stop-color="#150f1c"/>
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0c874"/>
+      <stop offset="100%" stop-color="#c8891f"/>
+    </linearGradient>
+    <filter id="moonGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <mask id="crescentMask">
+      <circle cx="512" cy="395" r="150" fill="#fff"/>
+      <circle cx="512" cy="323" r="144" fill="#000"/>
+    </mask>
+  </defs>
+
+  <rect width="1024" height="1024" rx="180" fill="url(#bgGlow)"/>
+
+  <!-- soft star flecks -->
+  <g fill="#f0c874" opacity="0.55">
+    <circle cx="205" cy="230" r="4"/>
+    <circle cx="840" cy="210" r="3"/>
+    <circle cx="880" cy="360" r="5"/>
+    <circle cx="150" cy="430" r="3"/>
+    <circle cx="860" cy="640" r="4"/>
+    <circle cx="180" cy="680" r="3"/>
+  </g>
+
+  <!-- crescent moon, tilted to match the site's moon icon -->
+  <g filter="url(#moonGlow)" transform="rotate(-35 512 395)">
+    <circle cx="512" cy="395" r="150" fill="url(#goldGrad)" mask="url(#crescentMask)"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="512" y="700" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="112" fill="#f3ece0" font-weight="400">Moon's</text>
+  <text x="512" y="812" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-style="italic" font-size="112" fill="url(#goldGrad)" font-weight="400">Kitchen</text>
+
+  <text x="512" y="862" text-anchor="middle"
+        font-family="Verdana, Arial, sans-serif"
+        font-size="26" letter-spacing="6" fill="#c9bcd6">HOME BAKED &#183; MILLET &amp; GRAIN</text>
+</svg>
