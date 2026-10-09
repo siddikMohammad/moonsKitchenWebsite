@@ -34,6 +34,10 @@ window.MK_MENU = [
   {
     category: "Brownies",
     items: [
+      "Nutella Brownies – Box of 9",
+      "Nutella Brownies – 5 pcs",
+      "Dark Brownies – Box of 9",
+      "Dark Brownies – 4 pcs",
       "Fudge Brownie",
       "Chewy Brownie",
       "Cakey Brownie",

@@ -230,9 +230,9 @@
 .cart-money { border-top: 0; padding-top: 4px; margin-top: 0; font-size: 1.05rem; color: var(--choc); }
 .cart-money[hidden] { display: none; }
 .line-items small.muted { color: var(--muted); font-weight: 400; }
-.tile-price { display: block; font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); margin-top: 2px; }
+.tile-price { display: block; padding: 2px 14px 0; font-size: 0.82rem; font-weight: 700; color: var(--gold-deep); }
 .menu-cat { font-family: var(--font-head); font-size: 1.15rem; color: var(--choc); margin: 22px 0 10px; }
-.product-fields { grid-template-columns: 140px 120px 1fr auto; }
+.product-fields { grid-template-columns: 110px 110px 110px 1fr auto; }
 .field label.check {
   display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;
   font-size: 0.9rem; color: var(--text); font-weight: 600; padding: 11px 0; cursor: pointer;
@@ -241,3 +241,7 @@
 @media (max-width: 760px) { .product-fields { grid-template-columns: 1fr 1fr; } }
 .filters[hidden] { display: none; }
 .price-note.has-price { text-transform: none; letter-spacing: 0.02em; font-size: 0.85rem; }
+
+/* "Or share on WhatsApp" sits on a light background */
+.testi-cta .btn-outline { color: var(--choc); border-color: var(--choc); }
+.testi-cta .btn-outline:hover { background: var(--choc); color: var(--gold-2); }

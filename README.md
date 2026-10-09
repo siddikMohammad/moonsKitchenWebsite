@@ -228,7 +228,7 @@ won't work when `index.html` is opened directly from disk — use
   are emailed to the admin via Brevo.
 
 - **Menu & prices** (Admin → "Menu & prices" tab): set each item's weight
-  (grams) and price, or switch it off. The website updates within a minute:
+  (pack size in grams or pieces) and price, or switch it off. The website updates within a minute:
   priced items show "250 g · ₹180" on the home page and Order page, unpriced
   or switched-off items are hidden, and the cart shows an estimated total
   (calculated on the server from these prices; you still confirm each order).

@@ -515,7 +515,10 @@
           price.className = "tile-price";
           tile.querySelector(".tile-name").insertAdjacentElement("afterend", price);
         }
-        price.textContent = MK.pack(p);
+        // "Box of 9" / "5 pcs" is already in the tile name: show just the price.
+        var numbersInName = tile.querySelector(".tile-name").textContent.match(/\d+/g) || [];
+        var countInName = p.unit === "pcs" && numbersInName.indexOf(String(p.pack_size)) !== -1;
+        price.textContent = countInName ? MK.money(p.price) : MK.pack(p);
       });
 
       // Hide rows / sections left with nothing in them, and menu links to them.

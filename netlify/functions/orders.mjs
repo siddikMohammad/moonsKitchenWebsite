@@ -14,7 +14,7 @@ import v2Lib from "../lib/v2.js";
 const { json, cleanText } = api;
 
 const MAX_LINES = 30;
-const MAX_QTY = 50;
+const MAX_QTY = 100;
 const MAX_ORDERS_PER_DAY = 10;
 const DAY = 24 * 60 * 60 * 1000;
 const REVIEWABLE = ["confirmed", "ready", "completed"];
@@ -75,7 +75,7 @@ function validateOrder(body) {
   };
 }
 
-// Adds grams + unit price to each line from the current menu and returns the
+// Adds the pack (size + unit) and unit price to each line from the current menu and returns the
 // estimated total. While nothing is priced yet (menu not set up), orders are
 // accepted without prices, as before. Returns { items, total } or { error }.
 async function priceLines(items) {
@@ -90,7 +90,7 @@ async function priceLines(items) {
     if (!p) return { error: `"${line.item}" isn't available right now. Please remove it from your order.` };
     const unitPrice = Number(p.price);
     total += unitPrice * line.qty;
-    priced.push({ item: line.item, qty: line.qty, grams: p.grams, unit_price: unitPrice });
+    priced.push({ item: line.item, qty: line.qty, pack_size: p.pack_size, unit: p.unit, unit_price: unitPrice });
   }
   return { items: priced, total: Math.round(total * 100) / 100 };
 }
@@ -98,7 +98,7 @@ async function priceLines(items) {
 function itemsHtml(items) {
   return items
     .map((l) => {
-      const pack = l.grams ? ` (${l.grams} g)` : "";
+      const pack = l.pack_size ? ` (${l.pack_size} ${l.unit === "pcs" ? "pcs" : "g"})` : "";
       const price = l.unit_price != null ? ` &mdash; &#8377;${l.unit_price * l.qty}` : "";
       return `<li>${mail.escapeHtml(l.item)}${pack} &times; ${l.qty}${price}</li>`;
     })

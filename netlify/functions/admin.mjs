@@ -4,7 +4,7 @@
 //   PATCH { type: "order", id, status?, total_price?, admin_note? }
 //   PATCH { type: "review", id, status }
 //   GET   ?type=products                      (the whole menu, incl. hidden/unpriced)
-//   PATCH { type: "product", id, grams?, price?, active? }
+//   PATCH { type: "product", id, pack_size?, unit?, price?, active? }
 
 import db from "../lib/db.js";
 import api from "../lib/api.js";
@@ -64,10 +64,14 @@ async function updateProduct(body) {
   if (!Number.isInteger(id)) return json(400, { error: "Invalid item id" });
 
   const patch = {};
-  if (body.grams !== undefined) {
-    const g = optionalNumber(body.grams, 1, 100000, "Grams");
-    if (g.error) return json(400, { error: g.error });
-    patch.grams = g.value == null ? null : Math.round(g.value);
+  if (body.pack_size !== undefined) {
+    const n = optionalNumber(body.pack_size, 1, 100000, "Pack size");
+    if (n.error) return json(400, { error: n.error });
+    patch.pack_size = n.value == null ? null : Math.round(n.value);
+  }
+  if (body.unit !== undefined) {
+    if (!["g", "pcs"].includes(body.unit)) return json(400, { error: "Unit must be grams or pieces" });
+    patch.unit = body.unit;
   }
   if (body.price !== undefined) {
     const p = optionalNumber(body.price, 0, 1000000, "Price");

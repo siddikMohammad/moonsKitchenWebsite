@@ -6,7 +6,7 @@
   "use strict";
 
   var CART_KEY = "mk_cart";
-  var MAX_QTY = 50;
+  var MAX_QTY = 100;
 
   // Safe for both element text and quoted attribute values.
   function esc(str) {
@@ -100,13 +100,18 @@
     return menuPromise;
   }
 
-  function grams(g) {
-    if (g == null) return "";
-    return g >= 1000 ? (Math.round(g / 10) / 100) + " kg" : g + " g";
+  var KG_FRACTIONS = { 250: "¼ kg", 500: "½ kg", 750: "¾ kg" };
+
+  // "½ kg", "1 kg", "200 g", "9 pcs", "1 pc"
+  function size(packSize, unit) {
+    if (packSize == null) return "";
+    if (unit === "pcs") return packSize + (packSize === 1 ? " pc" : " pcs");
+    if (KG_FRACTIONS[packSize]) return KG_FRACTIONS[packSize];
+    return packSize >= 1000 ? (Math.round(packSize / 10) / 100) + " kg" : packSize + " g";
   }
 
   function pack(p) {
-    return [grams(p.grams), money(p.price)].filter(Boolean).join(" · ");
+    return [size(p.pack_size, p.unit), money(p.price)].filter(Boolean).join(" · ");
   }
 
   function loginUrl() {
@@ -144,7 +149,7 @@
 
   function itemsList(items) {
     return "<ul class=\"line-items\">" + (items || []).map(function (l) {
-      var detail = l.grams ? ' <small class="muted">(' + esc(grams(l.grams)) + ")</small>" : "";
+      var detail = l.pack_size ? ' <small class="muted">(' + esc(size(l.pack_size, l.unit)) + ")</small>" : "";
       var price = l.unit_price != null ? " &middot; " + esc(money(l.unit_price * l.qty)) : "";
       return "<li><span>" + esc(l.item) + detail + "</span><strong>&times; " + esc(l.qty) + price + "</strong></li>";
     }).join("") + "</ul>";
@@ -169,7 +174,7 @@
     api: api,
     session: session,
     menu: menu,
-    grams: grams,
+    size: size,
     pack: pack,
     loginUrl: loginUrl,
     statusBadge: statusBadge,

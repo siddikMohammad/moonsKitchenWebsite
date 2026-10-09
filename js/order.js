@@ -72,7 +72,7 @@
           var p = productOf(l.item);
           if (p) total += p.price * l.qty; else allPriced = false;
           return '<div class="cart-row"><span>' + esc(l.item) +
-            (p ? '<small class="pack">' + esc(MK.grams(p.grams)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
+            (p ? '<small class="pack">' + esc(MK.size(p.pack_size, p.unit)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
             "</span>" + stepper(l.item) + "</div>";
         }).join("")
       : '<p class="cart-empty">Nothing yet &mdash; <a href="#pickTitle">choose items from the menu</a>.</p>';

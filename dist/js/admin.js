@@ -67,7 +67,7 @@
 
   function productState(p) {
     if (!p.active) return ["hidden", "Switched off"];
-    if (p.price == null || p.grams == null) return ["pending", "Needs grams & price"];
+    if (p.price == null || p.pack_size == null) return ["pending", "Needs pack size & price"];
     return ["approved", "On website"];
   }
 
@@ -77,7 +77,10 @@
       '<div class="order-head"><div><h3>' + esc(p.name) + "</h3><small>" + esc(p.category) + "</small></div>" +
       '<span class="status status-' + st[0] + '">' + esc(st[1]) + "</span></div>" +
       '<div class="admin-edit product-fields">' +
-      '<div class="field"><label for="p' + p.id + 'g">Weight (grams)</label><input id="p' + p.id + 'g" name="grams" type="number" min="1" step="1" inputmode="numeric" value="' + (p.grams == null ? "" : esc(p.grams)) + '" placeholder="e.g. 250" /></div>' +
+      '<div class="field"><label for="p' + p.id + 'g">Pack size</label><input id="p' + p.id + 'g" name="pack_size" type="number" min="1" step="1" inputmode="numeric" value="' + (p.pack_size == null ? "" : esc(p.pack_size)) + '" placeholder="e.g. 500" /></div>' +
+      '<div class="field"><label for="p' + p.id + 'u">Unit</label><select id="p' + p.id + 'u" name="unit">' +
+      '<option value="g"' + (p.unit !== "pcs" ? " selected" : "") + '>grams</option>' +
+      '<option value="pcs"' + (p.unit === "pcs" ? " selected" : "") + ">pieces</option></select></div>" +
       '<div class="field"><label for="p' + p.id + 'p">Price (₹)</label><input id="p' + p.id + 'p" name="price" type="number" min="0" step="1" inputmode="numeric" value="' + (p.price == null ? "" : esc(Number(p.price))) + '" placeholder="e.g. 180" /></div>' +
       '<div class="field"><label class="check"><input name="active" type="checkbox"' + (p.active ? " checked" : "") + " /> Show on website</label></div>" +
       '<button type="submit" class="btn btn-dark btn-sm btn-inline">Save</button>' +
@@ -93,7 +96,7 @@
     });
     var live = rows.filter(function (p) { return productState(p)[0] === "approved"; }).length;
     return '<p class="form-note" style="margin:0 0 14px">' + live + " of " + rows.length +
-      " items are on the website. Items need a weight and a price to appear; changes show on the website within a minute.</p>" +
+      " items are on the website. Each item needs a pack size (grams or pieces) and a price to appear; changes show on the website within a minute.</p>" +
       cats.map(function (c) {
         return '<h2 class="menu-cat">' + esc(c) + "</h2>" + byCat[c].map(productRow).join("");
       }).join("");
@@ -166,7 +169,8 @@
         body: {
           type: "product",
           id: Number(productForm.getAttribute("data-id")),
-          grams: productForm.grams.value,
+          pack_size: productForm.pack_size.value,
+          unit: productForm.unit.value,
           price: productForm.price.value,
           active: productForm.active.checked
         }
