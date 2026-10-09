@@ -43,7 +43,7 @@
 
       <div class="header-actions">
         <div class="account" id="account">
-          <a href="login.html" class="account-btn" id="accountLogin"><svg><use href="#i-user"/></svg><span>Login</span></a>
+          <a href="login.html" class="account-btn" id="accountLogin" aria-label="Sign in"><svg><use href="#i-user"/></svg><span>Sign in</span></a>
           <button type="button" class="account-btn hidden" id="accountToggle" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenu">
             <span class="account-initial" id="accountInitial"></span><span id="accountName">Account</span>
           </button>
@@ -66,6 +66,7 @@
         <li><a href="#about">About Us</a></li>
         <li class="nav-drawer-only"><a href="#" class="whatsapp-link" data-item="a chat">Order on WhatsApp</a></li>
         <li class="nav-drawer-only nav-drawer-ig"><a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer">Follow on Instagram</a></li>
+        <li class="nav-drawer-only nav-drawer-account" id="drawerAccount"><a href="login.html" id="drawerAccountLink">Sign in</a></li>
       </ul>
     </nav>
     <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
@@ -634,7 +635,7 @@
 
     <div class="container footer-bottom">
       <div>
-        <p>&copy; <span id="year"></span> Moon's Kitchen. All rights reserved.</p>
+        <p>&copy; <span id="year"></span> Moon's Kitchen. All rights reserved. &middot; <a href="privacy.html">Privacy Policy</a></p>
         <p class="photo-credit">Some product photos via <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.</p>
       </div>
       <ul class="footer-tags" aria-label="How we work">

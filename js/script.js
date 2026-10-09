@@ -437,12 +437,17 @@
   var accountToggle = document.getElementById("accountToggle");
   var accountMenu = document.getElementById("accountMenu");
 
+  function logout() {
+    fetch("/.netlify/functions/logout", { method: "POST", credentials: "same-origin" })
+      .finally(function () { window.location.reload(); });
+  }
+
   function setAccountMenu(open) {
     accountMenu.classList.toggle("hidden", !open);
     accountToggle.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
-  if (accountLogin && accountToggle && accountMenu) {
+  if (accountLogin && accountToggle && accountMenu && window.location.protocol !== "file:") {
     fetch("/.netlify/functions/session", { credentials: "same-origin" })
       .then(function (res) { return res.ok ? res.json() : {}; })
       .then(function (data) {
@@ -454,6 +459,17 @@
         accountToggle.setAttribute("aria-label", "Account: " + data.email);
         accountLogin.classList.add("hidden");
         accountToggle.classList.remove("hidden");
+
+        // Mobile drawer: swap "Sign in" for "Log out".
+        var drawerLink = document.getElementById("drawerAccountLink");
+        if (drawerLink) {
+          drawerLink.textContent = "Log out (" + name + ")";
+          drawerLink.setAttribute("href", "#");
+          drawerLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            logout();
+          });
+        }
       })
       .catch(function () {
         // Functions unavailable (e.g. opened as a local file) — keep showing "Login".
@@ -470,9 +486,6 @@
       if (e.key === "Escape") setAccountMenu(false);
     });
 
-    document.getElementById("accountLogout").addEventListener("click", function () {
-      fetch("/.netlify/functions/logout", { method: "POST", credentials: "same-origin" })
-        .finally(function () { window.location.reload(); });
-    });
+    document.getElementById("accountLogout").addEventListener("click", logout);
   }
 })();

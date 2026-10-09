@@ -6,6 +6,13 @@
 [functions]
   node_bundler = "esbuild"
 
+# Local testing with `netlify dev`: serve the source files directly (no build
+# step), so edits show up on reload. Open http://localhost:8888
+[dev]
+  framework = "#static"
+  publish = "."
+  port = 8888
+
 # The email-OTP login gate is switched OFF (site is public).
 # To turn it back on: move netlify/disabled/gate.js to
 # netlify/edge-functions/gate.js and add back:

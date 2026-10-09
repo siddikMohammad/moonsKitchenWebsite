@@ -5,9 +5,15 @@
 // Requires env vars: BREVO_API_KEY, BREVO_SENDER_EMAIL, OTP_SECRET
 // (set in Netlify site settings).
 
-const crypto = require("crypto");
+import crypto from "crypto";
+import { getStore } from "@netlify/blobs";
+import limits from "../lib/limits.js";
+import v2Lib from "../lib/v2.js";
 
 const OTP_TTL_MINUTES = 10;
+const HOUR = 60 * 60 * 1000;
+const MAX_SENDS_PER_EMAIL_PER_HOUR = 5;
+const MAX_SENDS_PER_IP_PER_HOUR = 20;
 
 function makeOtp() {
   return String(crypto.randomInt(0, 1000000)).padStart(6, "0");
@@ -22,7 +28,7 @@ function signOtpToken(email, otp, secret) {
   return Buffer.from(`${email}.${expiry}.${sig}`).toString("base64url");
 }
 
-exports.handler = async (event) => {
+const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
   }
@@ -44,6 +50,19 @@ exports.handler = async (event) => {
   const otpSecret = process.env.OTP_SECRET;
   if (!apiKey || !senderEmail || !otpSecret) {
     return { statusCode: 500, body: JSON.stringify({ error: "OTP service not configured" }) };
+  }
+
+  // Stop anyone using the form to flood an inbox or burn the daily email quota.
+  const store = limits.openStore(getStore);
+  const tooMany = {
+    statusCode: 429,
+    body: JSON.stringify({ error: "Too many codes requested. Please wait a while and try again, or continue with Google." }),
+  };
+  if (!(await limits.allow(store, limits.keyFor("ip-send", limits.clientIp(event)), MAX_SENDS_PER_IP_PER_HOUR, HOUR))) {
+    return tooMany;
+  }
+  if (!(await limits.allow(store, limits.keyFor("email-send", email), MAX_SENDS_PER_EMAIL_PER_HOUR, HOUR))) {
+    return tooMany;
   }
 
   const otp = makeOtp();
@@ -82,3 +101,6 @@ exports.handler = async (event) => {
 
   return { statusCode: 200, body: JSON.stringify({ ok: true, token: token }) };
 };
+
+// v2 format so Netlify Blobs (rate limits) can read with strong consistency.
+export default v2Lib.v2(handler);
