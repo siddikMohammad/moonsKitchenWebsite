@@ -123,3 +123,13 @@ insert into public.products (name, category, sort_order, pack_size, unit, price)
   ('Pista Cupcakes', 'Cupcakes', 330, 1, 'pcs', 15),
   ('Rasmalai Cupcakes', 'Cupcakes', 340, 1, 'pcs', 15)
 on conflict (name) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Access: only the server (Netlify functions, using the secret key =
+-- service_role) may use these tables. The public "anon" / "authenticated"
+-- roles get nothing, even if "Automatically expose new tables" is on.
+-- ---------------------------------------------------------------------------
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.orders, public.reviews, public.products to service_role;
+grant usage, select on all sequences in schema public to service_role;
+revoke all on public.orders, public.reviews, public.products from anon, authenticated;
