@@ -1601,6 +1601,7 @@ svg { width: 1em; height: 1em; }
   .nav-drawer-only { display: block; }
   .nav-drawer-only a { color: var(--whatsapp); font-weight: 600; }
   .nav-drawer-ig a { color: var(--gold-2); }
+  .nav-drawer-account a { color: var(--gold); }
   .nav-toggle { position: relative; z-index: 130; }
 
   .nav-backdrop {

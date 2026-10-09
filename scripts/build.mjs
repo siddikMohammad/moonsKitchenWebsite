@@ -5,7 +5,7 @@ import { cpSync, rmSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT = "dist";
-const INCLUDE = ["index.html", "login.html", "css", "js", "assets"];
+const INCLUDE = ["index.html", "login.html", "privacy.html", "css", "js", "assets"];
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT);

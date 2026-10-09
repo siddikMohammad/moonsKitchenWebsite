@@ -13,7 +13,17 @@
   var changeEmailBtn = document.getElementById("changeEmailBtn");
 
   var currentEmail = "";
-  var otpToken = "";
+  var otpTokens = []; // one per email sent, so codes from earlier emails still work after Resend
+
+  // Login runs on Netlify Functions, which don't exist when this page is
+  // opened straight from disk (file://). Say so instead of failing silently.
+  if (window.location.protocol === "file:") {
+    errorEl.textContent =
+      "Login only works on the live site or when running \"netlify dev\" — not when the file is opened directly.";
+    sendOtpBtn.disabled = true;
+    emailInput.disabled = true;
+    return;
+  }
 
   function showError(message) {
     errorEl.textContent = message || "";
@@ -50,7 +60,7 @@
     })
       .then(parseResponse)
       .then(function (data) {
-        otpToken = data.token;
+        otpTokens.push(data.token);
       });
   }
 
@@ -63,6 +73,7 @@
       showError("Enter a valid email address.");
       return;
     }
+    if (email.toLowerCase() !== currentEmail) otpTokens = [];
     currentEmail = email.toLowerCase();
 
     setBusy(sendOtpBtn, true, "Send OTP");
@@ -96,7 +107,7 @@
     fetch("/.netlify/functions/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: currentEmail, otp: otp, token: otpToken }),
+      body: JSON.stringify({ email: currentEmail, otp: otp, tokens: otpTokens }),
     })
       .then(parseResponse)
       .then(function () {

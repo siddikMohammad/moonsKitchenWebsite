@@ -190,6 +190,11 @@ days, and the header shows their name with a **Log out** option.
 - `netlify/functions/logout.js` — clears the session
 - `netlify/lib/session.js` — shared cookie helpers
 
+**Abuse limits** (`netlify/lib/limits.js`, stored in Netlify Blobs — free,
+no setup): max 5 code emails per address per hour, 20 per visitor IP per
+hour, and 5 wrong codes per address per 15 minutes. Change the numbers at the
+top of `send-otp.mjs` / `verify-otp.mjs`.
+
 Email OTP uses the same Brevo setup and env vars as section 6
 (`BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `OTP_SECRET`, `SESSION_SECRET`).
 
