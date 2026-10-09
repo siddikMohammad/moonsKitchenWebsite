@@ -158,13 +158,15 @@
 
   var testiTrack = document.getElementById("testiTrack");
   var testiNav = document.getElementById("testiNav");
-  if (testiTrack && TESTIMONIALS.length) {
+
+  function renderTestimonials(list) {
+    if (!testiTrack) return;
     var esc = function (str) {
       var d = document.createElement("div");
       d.textContent = str == null ? "" : String(str);
       return d.innerHTML;
     };
-    TESTIMONIALS.forEach(function (t) {
+    list.forEach(function (t) {
       var rating = Math.max(0, Math.min(5, Math.round(t.rating || 0)));
       var card = document.createElement("figure");
       card.className = "testi-card";
@@ -177,7 +179,9 @@
         "<small>" + esc([t.place, t.item].filter(Boolean).join(" · ")) + "</small></span></figcaption>";
       testiTrack.appendChild(card);
     });
-    if (testiNav && TESTIMONIALS.length > 1) {
+    var total = testiTrack.children.length;
+    testiTrack.hidden = total === 0;
+    if (testiNav && total > 1 && testiNav.hidden) {
       testiNav.hidden = false;
       testiNav.querySelectorAll(".testi-arrow").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -186,8 +190,20 @@
         });
       });
     }
-  } else if (testiTrack) {
-    testiTrack.remove();
+  }
+
+  // Hand-added testimonials first, then customer reviews approved on the admin page.
+  if (testiTrack) testiTrack.hidden = true;
+  renderTestimonials(TESTIMONIALS);
+  if (testiTrack && location.protocol !== "file:") {
+    fetch("/.netlify/functions/reviews")
+      .then(function (res) { return res.ok ? res.json() : { reviews: [] }; })
+      .then(function (data) {
+        renderTestimonials((data.reviews || []).map(function (r) {
+          return { name: r.display_name, rating: r.rating, text: r.comment, item: r.item_summary };
+        }));
+      })
+      .catch(function () {});
   }
 
   /* ------------------------------------------------------------
@@ -429,6 +445,37 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ------------------------------------------------------------
+   * "Add to order" buttons on product cards. They fill the cart used by
+   * the Order page (order.html); the WhatsApp "Order" button stays too.
+   * ---------------------------------------------------------- */
+  if (window.MK) {
+    document.querySelectorAll(".product-card .order-btn[data-item]").forEach(function (waBtn) {
+      var item = waBtn.getAttribute("data-item");
+      var add = document.createElement("button");
+      add.type = "button";
+      add.className = "add-btn";
+      add.setAttribute("data-add-item", item);
+      waBtn.insertAdjacentElement("afterend", add);
+    });
+
+    var paintAddButtons = function () {
+      document.querySelectorAll("[data-add-item]").forEach(function (btn) {
+        var qty = MK.cart.qtyOf(btn.getAttribute("data-add-item"));
+        btn.classList.toggle("is-added", qty > 0);
+        btn.textContent = qty > 0 ? "✓ Added (" + qty + ") · +1" : "+ Add to order";
+      });
+    };
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-add-item]");
+      if (!btn) return;
+      var item = btn.getAttribute("data-add-item");
+      MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
+    });
+    document.addEventListener("mk:cart", paintAddButtons);
+    paintAddButtons();
+  }
+
+  /* ------------------------------------------------------------
    * Optional customer login in the header. Login is never forced:
    * the "Login" button stays until the customer signs in, then it
    * becomes an account button with a Log out option.
@@ -459,6 +506,7 @@
         accountToggle.setAttribute("aria-label", "Account: " + data.email);
         accountLogin.classList.add("hidden");
         accountToggle.classList.remove("hidden");
+        if (data.isAdmin) document.getElementById("accountAdmin").classList.remove("hidden");
 
         // Mobile drawer: swap "Sign in" for "Log out".
         var drawerLink = document.getElementById("drawerAccountLink");
