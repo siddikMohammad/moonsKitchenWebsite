@@ -476,6 +476,70 @@
   }
 
   /* ------------------------------------------------------------
+   * Prices from the admin Menu page. Priced items show their pack and
+   * price; items that are hidden or not priced yet are removed from the
+   * page. If nothing is priced yet (or the menu can't load) the page stays
+   * exactly as designed, with "Price on request" and WhatsApp ordering.
+   * ---------------------------------------------------------- */
+  if (window.MK) {
+    MK.menu().then(function (m) {
+      if (!m.priced) return;
+
+      document.querySelectorAll(".product-card").forEach(function (card) {
+        var orderBtn = card.querySelector(".order-btn[data-item]");
+        if (!orderBtn) return;
+        var p = m.byName.get(orderBtn.getAttribute("data-item"));
+        if (!p) {
+          card.style.display = "none";
+          return;
+        }
+        var note = card.querySelector(".price-note");
+        if (!note) {
+          note = document.createElement("p");
+          note.className = "price-note";
+          orderBtn.insertAdjacentElement("beforebegin", note);
+        }
+        note.textContent = MK.pack(p);
+        note.classList.add("has-price");
+      });
+
+      document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
+        var p = m.byName.get(tile.getAttribute("data-item"));
+        if (!p) {
+          tile.style.display = "none";
+          return;
+        }
+        var price = tile.querySelector(".tile-price");
+        if (!price) {
+          price = document.createElement("span");
+          price.className = "tile-price";
+          tile.querySelector(".tile-name").insertAdjacentElement("afterend", price);
+        }
+        price.textContent = MK.pack(p);
+      });
+
+      // Hide rows / sections left with nothing in them, and menu links to them.
+      var shown = function (el) { return el.style.display !== "none"; };
+      var hideBlock = function (block) {
+        block.style.display = "none";
+        if (block.id) {
+          document.querySelectorAll('.nav-links a[href="#' + block.id + '"]').forEach(function (link) {
+            link.closest("li").style.display = "none";
+          });
+        }
+      };
+      document.querySelectorAll(".feature-row").forEach(function (row) {
+        var tiles = row.querySelectorAll(".tile[data-item]");
+        if (tiles.length && ![].some.call(tiles, shown)) hideBlock(row);
+      });
+      document.querySelectorAll("#bestsellers, #ragi-cookies").forEach(function (section) {
+        var cards = section.querySelectorAll(".product-card");
+        if (cards.length && ![].some.call(cards, shown)) hideBlock(section);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------
    * Optional customer login in the header. Login is never forced:
    * the "Login" button stays until the customer signs in, then it
    * becomes an account button with a Log out option.

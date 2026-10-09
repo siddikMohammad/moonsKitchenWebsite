@@ -222,3 +222,22 @@
 @media (max-width: 340px) {
   .header-actions .icon-btn-wa { display: none; }
 }
+
+/* ---------- Menu prices ---------- */
+.pick-row span small.pack, .cart-row span small.pack {
+  display: block; font-size: 0.8rem; color: var(--gold-deep); font-weight: 600; margin-top: 2px;
+}
+.cart-money { border-top: 0; padding-top: 4px; margin-top: 0; font-size: 1.05rem; color: var(--choc); }
+.cart-money[hidden] { display: none; }
+.line-items small.muted { color: var(--muted); font-weight: 400; }
+.tile-price { display: block; font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); margin-top: 2px; }
+.menu-cat { font-family: var(--font-head); font-size: 1.15rem; color: var(--choc); margin: 22px 0 10px; }
+.product-fields { grid-template-columns: 140px 120px 1fr auto; }
+.field label.check {
+  display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;
+  font-size: 0.9rem; color: var(--text); font-weight: 600; padding: 11px 0; cursor: pointer;
+}
+.field label.check input { width: 18px; height: 18px; accent-color: var(--choc); }
+@media (max-width: 760px) { .product-fields { grid-template-columns: 1fr 1fr; } }
+.filters[hidden] { display: none; }
+.price-note.has-price { text-transform: none; letter-spacing: 0.02em; font-size: 0.85rem; }

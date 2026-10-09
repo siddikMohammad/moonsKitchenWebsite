@@ -1,10 +1,12 @@
 // Customer orders.
 //   GET  -> the signed-in customer's own orders (newest first)
-//   POST -> place a new order request (price is confirmed later by the owner)
+//   POST -> place a new order request. Prices come from the products table
+//           (never from the browser); the owner still confirms the total.
 
 import { getStore } from "@netlify/blobs";
 import db from "../lib/db.js";
 import api from "../lib/api.js";
+import catalog from "../lib/catalog.js";
 import limits from "../lib/limits.js";
 import mail from "../lib/mail.js";
 import v2Lib from "../lib/v2.js";
@@ -73,8 +75,34 @@ function validateOrder(body) {
   };
 }
 
+// Adds grams + unit price to each line from the current menu and returns the
+// estimated total. While nothing is priced yet (menu not set up), orders are
+// accepted without prices, as before. Returns { items, total } or { error }.
+async function priceLines(items) {
+  const onSale = (await catalog.loadAll()).filter(catalog.isOnSale);
+  if (!onSale.length) return { items, total: null };
+
+  const byName = new Map(onSale.map((p) => [p.name, p]));
+  let total = 0;
+  const priced = [];
+  for (const line of items) {
+    const p = byName.get(line.item);
+    if (!p) return { error: `"${line.item}" isn't available right now. Please remove it from your order.` };
+    const unitPrice = Number(p.price);
+    total += unitPrice * line.qty;
+    priced.push({ item: line.item, qty: line.qty, grams: p.grams, unit_price: unitPrice });
+  }
+  return { items: priced, total: Math.round(total * 100) / 100 };
+}
+
 function itemsHtml(items) {
-  return items.map((l) => `<li>${mail.escapeHtml(l.item)} &times; ${l.qty}</li>`).join("");
+  return items
+    .map((l) => {
+      const pack = l.grams ? ` (${l.grams} g)` : "";
+      const price = l.unit_price != null ? ` &mdash; &#8377;${l.unit_price * l.qty}` : "";
+      return `<li>${mail.escapeHtml(l.item)}${pack} &times; ${l.qty}${price}</li>`;
+    })
+    .join("");
 }
 
 async function listMine(user) {
@@ -114,6 +142,11 @@ const handler = api.safe(async (event) => {
     return json(429, { error: "You've placed a lot of orders today. Please message us on WhatsApp instead." });
   }
 
+  const pricing = await priceLines(order.items);
+  if (pricing.error) return json(400, { error: pricing.error });
+  order.items = pricing.items;
+  order.total_price = pricing.total; // estimate; the owner confirms or adjusts it
+
   const saved = await db.insert("orders", Object.assign({ customer_email: user.email }, order));
 
   const e = mail.escapeHtml;
@@ -127,7 +160,8 @@ const handler = api.safe(async (event) => {
       `<p>${order.fulfilment === "delivery" ? "Delivery to: " + e(order.address) : "Pickup"}` +
       `${order.preferred_date ? " &middot; for " + e(order.preferred_date) : ""}</p>` +
       (order.notes ? `<p>Notes: ${e(order.notes)}</p>` : "") +
-      `<p>Open the admin page to confirm the price.</p>`,
+      (order.total_price != null ? `<p><strong>Estimated total: &#8377;${order.total_price}</strong></p>` : "") +
+      `<p>Open the admin page to confirm the order.</p>`,
   });
 
   return json(201, { ok: true, order: { id: saved.id, status: saved.status } });

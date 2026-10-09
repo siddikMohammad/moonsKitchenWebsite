@@ -49,7 +49,7 @@
       MK.itemsList(o.items) +
       '<p class="order-meta">' + esc(meta) + "</p>" +
       '<p class="order-meta">' + esc(STATUS_HELP[o.status] || "") + "</p>" +
-      (o.total_price != null ? '<p class="order-meta">Total: <span class="order-price">' + esc(MK.money(o.total_price)) + "</span></p>" : "") +
+      (o.total_price != null ? '<p class="order-meta">' + (o.status === "new" ? "Estimated total (we'll confirm): " : "Total: ") + '<span class="order-price">' + esc(MK.money(o.total_price)) + "</span></p>" : "") +
       (o.admin_note ? '<div class="owner-note"><strong>From Moon\'s Kitchen:</strong> ' + esc(o.admin_note) + "</div>" : "") +
       (review ? '<div style="margin-top:12px">' + review + "</div>" : "") +
       "</article>";

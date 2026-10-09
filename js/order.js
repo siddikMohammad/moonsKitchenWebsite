@@ -21,23 +21,68 @@
       '<button type="button" data-step="1" aria-label="One more ' + esc(item) + '">+</button></span>';
   }
 
+  // Live menu (prices); null until loaded. Falls back to the built-in item
+  // list without prices when nothing is priced yet.
+  var liveMenu = null;
+
+  function groups() {
+    if (liveMenu && liveMenu.priced) {
+      var order = [];
+      var byCat = {};
+      liveMenu.products.forEach(function (p) {
+        if (!byCat[p.category]) { byCat[p.category] = []; order.push(p.category); }
+        byCat[p.category].push(p.name);
+      });
+      return order.map(function (c) { return { category: c, items: byCat[c] }; });
+    }
+    return window.MK_MENU;
+  }
+
+  function productOf(item) {
+    return liveMenu && liveMenu.priced ? liveMenu.byName.get(item) : null;
+  }
+
   function renderPicker() {
-    picker.innerHTML = window.MK_MENU.map(function (group) {
+    picker.innerHTML = groups().map(function (group) {
       return '<div class="menu-group"><h3>' + esc(group.category) + "</h3>" +
         group.items.map(function (item) {
-          return '<div class="pick-row"><span>' + esc(item) + "</span>" + stepper(item) + "</div>";
+          var p = productOf(item);
+          return '<div class="pick-row"><span>' + esc(item) +
+            (p ? '<small class="pack">' + esc(MK.pack(p)) + "</small>" : "") + "</span>" + stepper(item) + "</div>";
         }).join("") + "</div>";
     }).join("");
   }
 
+  // Drops cart items that are no longer for sale (hidden or unpriced).
+  function pruneCart() {
+    if (!liveMenu || !liveMenu.priced) return [];
+    var removed = MK.cart.read().filter(function (l) { return !productOf(l.item); });
+    if (removed.length) {
+      MK.cart.write(MK.cart.read().filter(function (l) { return productOf(l.item); }));
+    }
+    return removed.map(function (l) { return l.item; });
+  }
+
   function renderCart() {
     var lines = MK.cart.read();
+    var total = 0;
+    var allPriced = lines.length > 0;
     cartLines.innerHTML = lines.length
       ? lines.map(function (l) {
-          return '<div class="cart-row"><span>' + esc(l.item) + "</span>" + stepper(l.item) + "</div>";
+          var p = productOf(l.item);
+          if (p) total += p.price * l.qty; else allPriced = false;
+          return '<div class="cart-row"><span>' + esc(l.item) +
+            (p ? '<small class="pack">' + esc(MK.grams(p.grams)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
+            "</span>" + stepper(l.item) + "</div>";
         }).join("")
       : '<p class="cart-empty">Nothing yet &mdash; <a href="#pickTitle">choose items from the menu</a>.</p>';
     cartTotal.textContent = MK.cart.count();
+    var totalRow = document.getElementById("cartMoney");
+    totalRow.hidden = !allPriced;
+    document.getElementById("cartMoneyValue").textContent = MK.money(total);
+    document.getElementById("priceNote").textContent = allPriced
+      ? "Estimated total. We'll confirm it with you (delivery charges, if any, are added then). Pay on pickup/delivery."
+      : "Price on confirmation · pay on pickup/delivery.";
   }
 
   function renderAll() {
@@ -139,4 +184,12 @@
   }
 
   renderAll();
+  MK.menu().then(function (m) {
+    liveMenu = m;
+    var removed = pruneCart();
+    if (removed.length) {
+      errorEl.textContent = "Removed from your order (not available right now): " + removed.join(", ") + ".";
+    }
+    renderAll();
+  });
 })();

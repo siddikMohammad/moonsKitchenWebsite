@@ -227,7 +227,16 @@ won't work when `index.html` is opened directly from disk — use
   price and a note on orders; approve or hide reviews. New orders and reviews
   are emailed to the admin via Brevo.
 
-Backend: `netlify/functions/orders.mjs`, `reviews.mjs`, `admin.mjs`.
+- **Menu & prices** (Admin → "Menu & prices" tab): set each item's weight
+  (grams) and price, or switch it off. The website updates within a minute:
+  priced items show "250 g · ₹180" on the home page and Order page, unpriced
+  or switched-off items are hidden, and the cart shows an estimated total
+  (calculated on the server from these prices; you still confirm each order).
+  Until at least one item is priced, the site looks exactly as before
+  ("Price on request"). Item names must match the website's `data-item`
+  names; new items are added in `supabase/schema.sql` / the Supabase table.
+
+Backend: `netlify/functions/orders.mjs`, `reviews.mjs`, `admin.mjs`, `menu.mjs`.
 All database code is in `netlify/lib/db.js` (Supabase REST API, no SDK), so
 switching databases later only touches that file.
 

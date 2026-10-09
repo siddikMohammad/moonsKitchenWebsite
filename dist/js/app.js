@@ -81,6 +81,34 @@
     return sessionPromise;
   }
 
+  // The live menu (priced, switched-on items). Resolves to
+  // { products: [...], byName: Map, priced: bool }. priced is false when the
+  // menu couldn't load or nothing is priced yet — pages then keep their
+  // original look ("Price on request", every item shown).
+  var menuPromise = null;
+  function menu() {
+    if (!menuPromise) {
+      var load = location.protocol === "file:"
+        ? Promise.resolve({ products: [] })
+        : api("menu").catch(function () { return { products: [] }; });
+      menuPromise = load.then(function (data) {
+        var products = data.products || [];
+        var byName = new Map(products.map(function (p) { return [p.name, p]; }));
+        return { products: products, byName: byName, priced: products.length > 0 };
+      });
+    }
+    return menuPromise;
+  }
+
+  function grams(g) {
+    if (g == null) return "";
+    return g >= 1000 ? (Math.round(g / 10) / 100) + " kg" : g + " g";
+  }
+
+  function pack(p) {
+    return [grams(p.grams), money(p.price)].filter(Boolean).join(" · ");
+  }
+
   function loginUrl() {
     return "login.html?next=" + encodeURIComponent(location.pathname + location.search);
   }
@@ -116,7 +144,9 @@
 
   function itemsList(items) {
     return "<ul class=\"line-items\">" + (items || []).map(function (l) {
-      return "<li><span>" + esc(l.item) + "</span><strong>&times; " + esc(l.qty) + "</strong></li>";
+      var detail = l.grams ? ' <small class="muted">(' + esc(grams(l.grams)) + ")</small>" : "";
+      var price = l.unit_price != null ? " &middot; " + esc(money(l.unit_price * l.qty)) : "";
+      return "<li><span>" + esc(l.item) + detail + "</span><strong>&times; " + esc(l.qty) + price + "</strong></li>";
     }).join("") + "</ul>";
   }
 
@@ -138,6 +168,9 @@
     cart: { read: readCart, write: writeCart, setQty: setQty, qtyOf: qtyOf, count: cartCount, clear: function () { writeCart([]); } },
     api: api,
     session: session,
+    menu: menu,
+    grams: grams,
+    pack: pack,
     loginUrl: loginUrl,
     statusBadge: statusBadge,
     money: money,

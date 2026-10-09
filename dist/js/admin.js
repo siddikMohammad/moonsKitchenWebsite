@@ -12,7 +12,8 @@
 
   var FILTERS = {
     orders: [["new", "New"], ["confirmed", "Confirmed"], ["ready", "Ready"], ["completed", "Completed"], ["cancelled", "Cancelled"], ["all", "All"]],
-    reviews: [["pending", "To approve"], ["approved", "Approved"], ["hidden", "Hidden"], ["all", "All"]]
+    reviews: [["pending", "To approve"], ["approved", "Approved"], ["hidden", "Hidden"], ["all", "All"]],
+    products: [["all", "All items"]]
   };
   var ORDER_STATUSES = ["new", "confirmed", "ready", "completed", "cancelled"];
   var state = { tab: "orders", status: "new" };
@@ -41,9 +42,9 @@
       '<a href="tel:' + esc(o.phone) + '">📞 ' + esc(o.phone) + "</a>" +
       '<a href="' + esc(waLink(o.phone, o.id)) + '" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>' +
       '<form class="admin-edit">' +
-      '<div class="field"><label>Status</label><select name="status">' + options + "</select></div>" +
-      '<div class="field"><label>Price (₹)</label><input name="total_price" type="number" min="0" step="1" value="' + (o.total_price == null ? "" : esc(o.total_price)) + '" /></div>' +
-      '<div class="field note-field"><label>Note to customer</label><input name="admin_note" maxlength="500" value="' + esc(o.admin_note || "") + '" placeholder="e.g. Ready Saturday after 4pm" /></div>' +
+      '<div class="field"><label for="o' + o.id + 's">Status</label><select id="o' + o.id + 's" name="status">' + options + "</select></div>" +
+      '<div class="field"><label for="o' + o.id + 'p">Price (₹)</label><input id="o' + o.id + 'p" name="total_price" type="number" min="0" step="1" value="' + (o.total_price == null ? "" : esc(o.total_price)) + '" /></div>' +
+      '<div class="field note-field"><label for="o' + o.id + 'n">Note to customer</label><input id="o' + o.id + 'n" name="admin_note" maxlength="500" value="' + esc(o.admin_note || "") + '" placeholder="e.g. Ready Saturday after 4pm" /></div>' +
       '<button type="submit" class="btn btn-dark btn-sm btn-inline">Save</button>' +
       "</form><p class=\"form-error\" role=\"alert\"></p></article>";
   }
@@ -64,7 +65,42 @@
       '<p class="form-error" role="alert"></p></article>';
   }
 
+  function productState(p) {
+    if (!p.active) return ["hidden", "Switched off"];
+    if (p.price == null || p.grams == null) return ["pending", "Needs grams & price"];
+    return ["approved", "On website"];
+  }
+
+  function productRow(p) {
+    var st = productState(p);
+    return '<form class="order-card product-edit" data-id="' + p.id + '">' +
+      '<div class="order-head"><div><h3>' + esc(p.name) + "</h3><small>" + esc(p.category) + "</small></div>" +
+      '<span class="status status-' + st[0] + '">' + esc(st[1]) + "</span></div>" +
+      '<div class="admin-edit product-fields">' +
+      '<div class="field"><label for="p' + p.id + 'g">Weight (grams)</label><input id="p' + p.id + 'g" name="grams" type="number" min="1" step="1" inputmode="numeric" value="' + (p.grams == null ? "" : esc(p.grams)) + '" placeholder="e.g. 250" /></div>' +
+      '<div class="field"><label for="p' + p.id + 'p">Price (₹)</label><input id="p' + p.id + 'p" name="price" type="number" min="0" step="1" inputmode="numeric" value="' + (p.price == null ? "" : esc(Number(p.price))) + '" placeholder="e.g. 180" /></div>' +
+      '<div class="field"><label class="check"><input name="active" type="checkbox"' + (p.active ? " checked" : "") + " /> Show on website</label></div>" +
+      '<button type="submit" class="btn btn-dark btn-sm btn-inline">Save</button>' +
+      '</div><p class="form-error" role="alert"></p></form>';
+  }
+
+  function renderProducts(rows) {
+    var cats = [];
+    var byCat = {};
+    rows.forEach(function (p) {
+      if (!byCat[p.category]) { byCat[p.category] = []; cats.push(p.category); }
+      byCat[p.category].push(p);
+    });
+    var live = rows.filter(function (p) { return productState(p)[0] === "approved"; }).length;
+    return '<p class="form-note" style="margin:0 0 14px">' + live + " of " + rows.length +
+      " items are on the website. Items need a weight and a price to appear; changes show on the website within a minute.</p>" +
+      cats.map(function (c) {
+        return '<h2 class="menu-cat">' + esc(c) + "</h2>" + byCat[c].map(productRow).join("");
+      }).join("");
+  }
+
   function renderFilters() {
+    filtersEl.hidden = FILTERS[state.tab].length < 2;
     filtersEl.innerHTML = FILTERS[state.tab].map(function (f) {
       return '<button type="button" data-status="' + f[0] + '" aria-pressed="' + (f[0] === state.status) + '">' + f[1] + "</button>";
     }).join("");
@@ -78,6 +114,10 @@
     listEl.innerHTML = '<p class="empty-state">Loading…</p>';
     MK.api("admin?type=" + state.tab + "&status=" + state.status).then(function (data) {
       var rows = data[state.tab] || [];
+      if (state.tab === "products") {
+        listEl.innerHTML = rows.length ? renderProducts(rows) : '<p class="empty-state">No menu items yet.</p>';
+        return;
+      }
       listEl.innerHTML = rows.length
         ? rows.map(state.tab === "orders" ? orderCard : reviewCard).join("")
         : '<p class="empty-state">Nothing here.</p>';
@@ -114,6 +154,30 @@
   });
 
   listEl.addEventListener("submit", function (e) {
+    var productForm = e.target.closest(".product-edit");
+    if (productForm) {
+      e.preventDefault();
+      var pErr = productForm.querySelector(".form-error");
+      var pBtn = productForm.querySelector("button");
+      pErr.textContent = "";
+      pBtn.disabled = true;
+      MK.api("admin", {
+        method: "PATCH",
+        body: {
+          type: "product",
+          id: Number(productForm.getAttribute("data-id")),
+          grams: productForm.grams.value,
+          price: productForm.price.value,
+          active: productForm.active.checked
+        }
+      }).then(function (data) {
+        productForm.outerHTML = productRow(data.product);
+      }).catch(function (err) {
+        pErr.textContent = err.message;
+        pBtn.disabled = false;
+      });
+      return;
+    }
     var form = e.target.closest(".admin-edit");
     if (!form) return;
     e.preventDefault();
