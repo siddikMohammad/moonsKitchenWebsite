@@ -206,3 +206,19 @@
 @media (max-width: 860px) {
   #orderGrid > section:first-child { order: 2; }
 }
+
+/* Small phones: keep clear space between the centred logo and the
+   account / cart / WhatsApp buttons. */
+@media (max-width: 460px) {
+  .header-main { column-gap: 10px; }
+  .logo-name { font-size: 1.25rem; }
+  .site-header.scrolled .logo-name { font-size: 1.15rem; }
+  .header-actions { gap: 6px; }
+  .header-actions .icon-btn,
+  .header-actions .account-btn { width: 32px; height: 32px; }
+}
+/* Very small phones: the floating WhatsApp button covers chat, so drop
+   the header copy to keep the side margin. */
+@media (max-width: 340px) {
+  .header-actions .icon-btn-wa { display: none; }
+}
