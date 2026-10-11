@@ -3,6 +3,7 @@
 //   GET   ?type=reviews&status=pending|approved|hidden|all
 //   PATCH { type: "order", id, status?, total_price?, admin_note? }
 //   PATCH { type: "review", id, status }
+//   GET   ?type=stats                         ({ customers, orders })
 //   GET   ?type=products                      (the whole menu, incl. hidden/unpriced)
 //   PATCH { type: "product", id, pack_size?, unit?, price?, active? }
 
@@ -16,7 +17,15 @@ const { json, cleanText } = api;
 const ORDER_STATUSES = ["new", "confirmed", "ready", "completed", "cancelled"];
 const REVIEW_STATUSES = ["pending", "approved", "hidden"];
 
+// Customers = distinct emails that have placed an order.
+async function stats() {
+  const rows = await db.select("orders", { columns: "customer_email", limit: 10000 });
+  const emails = new Set(rows.map((r) => String(r.customer_email || "").toLowerCase()).filter(Boolean));
+  return json(200, { customers: emails.size, orders: rows.length });
+}
+
 async function list(q) {
+  if (q.type === "stats") return stats();
   if (q.type === "products") return json(200, { products: await catalog.loadAll() });
   const type = q.type === "reviews" ? "reviews" : "orders";
   const allowed = type === "orders" ? ORDER_STATUSES : REVIEW_STATUSES;

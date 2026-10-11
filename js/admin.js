@@ -219,5 +219,9 @@
     lead.textContent = "Signed in as " + s.email + ". Confirm orders by setting the status and price — the customer sees both in My orders.";
     app.hidden = false;
     load();
+    MK.api("admin?type=stats").then(function (d) {
+      document.getElementById("stats").innerHTML =
+        "<strong>" + d.customers + "</strong> customers &middot; <strong>" + d.orders + "</strong> orders in total";
+    }).catch(function () {});
   });
 })();
