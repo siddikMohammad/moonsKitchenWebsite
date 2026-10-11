@@ -214,6 +214,51 @@ login page offers email OTP only. Login needs the Netlify Functions, so it
 won't work when `index.html` is opened directly from disk — use
 `netlify dev` to test locally.
 
+## 8. Online orders, My orders, reviews & admin (Supabase)
+
+- **Order page** (`order.html`): customers add items (also via "+ Add to order"
+  on product cards), enter name, phone, pickup or delivery, date and notes, and
+  place an order request. Sign-in required. The owner confirms the price later.
+- **My orders** (`my-orders.html`): each customer's orders with status
+  (Received → Confirmed → Ready → Completed / Cancelled), price and owner note.
+  Confirmed orders can be reviewed once (1–5 stars + comment).
+- **Reviews** show in "Kind Words" on the home page **after the owner approves them**.
+- **Admin** (`admin.html`): only for emails in `ADMIN_EMAILS`. Set status,
+  price and a note on orders; approve or hide reviews. New orders and reviews
+  are emailed to the admin via Brevo.
+
+- **Menu & prices** (Admin → "Menu & prices" tab): set each item's weight
+  (pack size in grams or pieces) and price, or switch it off. The website updates within a minute:
+  priced items show "250 g · ₹180" on the home page and Order page, unpriced
+  or switched-off items are hidden, and the cart shows an estimated total
+  (calculated on the server from these prices; you still confirm each order).
+  Until at least one item is priced, the site looks exactly as before
+  ("Price on request"). Item names must match the website's `data-item`
+  names; new items are added in `supabase/schema.sql` / the Supabase table.
+
+Backend: `netlify/functions/orders.mjs`, `reviews.mjs`, `admin.mjs`, `menu.mjs`.
+All database code is in `netlify/lib/db.js` (Supabase REST API, no SDK), so
+switching databases later only touches that file.
+
+### One-time Supabase setup
+
+1. Create a free project at https://supabase.com (region: Mumbai).
+2. SQL Editor → New query → paste `supabase/schema.sql` → Run.
+   (Row Level Security is on with no policies: the public key can't read anything.)
+3. Netlify → Environment variables:
+   - `SUPABASE_URL` — the Project URL (Project Settings → Data API)
+   - `SUPABASE_SECRET_KEY` — the **secret** key `sb_secret_…` (Project Settings →
+     API Keys). Tick "Contains secret values". Never put it in a file.
+   - `ADMIN_EMAILS` — e.g. `siddikroy1@gmail.com` (comma-separate several)
+4. Redeploy.
+
+### Testing locally
+
+Create a `.env` file (git-ignored) with `SESSION_SECRET`, `OTP_SECRET`,
+`SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `ADMIN_EMAILS`, then run `netlify dev`.
+Free Supabase projects pause after a week with no activity; the home page
+loads reviews on every visit, which normally keeps it awake.
+
 ## Notes
 
 - The site is fully responsive: check it on mobile by resizing your browser

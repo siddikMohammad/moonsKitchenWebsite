@@ -1,0 +1,247 @@
+/* ============================================
+   Moon's Kitchen — Order, My orders and Admin pages
+   Builds on style.css tokens (colours follow the active theme).
+   ============================================ */
+
+.app-body { background: var(--ivory); min-height: 100vh; }
+
+.app-bar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+}
+.app-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+.app-bar .logo-name { font-size: 1.35rem; }
+.app-bar nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.app-bar nav a {
+  color: var(--gold-2); font-size: 0.85rem; font-weight: 600;
+  padding: 7px 12px; border-radius: 999px;
+}
+.app-bar nav a:hover, .app-bar nav a[aria-current="page"] { background: color-mix(in srgb, var(--gold) 18%, transparent); }
+
+.app-main { padding: 28px 0 70px; }
+.app-main h1 { font-family: var(--font-head); font-size: clamp(1.6rem, 4vw, 2.2rem); margin: 0 0 6px; color: var(--choc); }
+.app-lead { color: var(--muted); margin: 0 0 24px; max-width: 640px; }
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.panel + .panel { margin-top: 18px; }
+.panel h2 { font-family: var(--font-head); font-size: 1.2rem; margin: 0 0 14px; color: var(--choc); }
+
+.app-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .app-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Item picker / cart lines ---------- */
+.menu-group + .menu-group { margin-top: 18px; }
+.menu-group h3 {
+  font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-deep); margin: 0 0 8px;
+}
+.pick-row, .cart-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 0; border-bottom: 1px dashed var(--line);
+}
+.pick-row:last-child, .cart-row:last-child { border-bottom: 0; }
+.pick-row span, .cart-row span { font-size: 0.93rem; }
+.stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+.stepper button {
+  width: 32px; height: 32px; border: 0; background: transparent; color: var(--choc);
+  font-size: 1.1rem; font-weight: 700; cursor: pointer;
+}
+.stepper button:hover { background: color-mix(in srgb, var(--gold) 18%, transparent); }
+.stepper output { min-width: 26px; text-align: center; font-weight: 700; font-size: 0.9rem; }
+.stepper.is-zero output { color: var(--muted); }
+.cart-empty { color: var(--muted); font-size: 0.92rem; margin: 6px 0 0; }
+.cart-total { display: flex; justify-content: space-between; font-weight: 700; padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--line); }
+
+/* ---------- Forms ---------- */
+.field { margin-bottom: 14px; }
+.field label, .field .label {
+  display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--gold-deep); margin-bottom: 6px;
+}
+.field input, .field textarea, .field select {
+  width: 100%; padding: 11px 13px; border-radius: 11px;
+  border: 1.5px solid var(--line); background: var(--ivory); color: var(--text);
+  font: inherit; font-size: 0.95rem;
+}
+.field textarea { min-height: 80px; resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus {
+  outline: none; border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent);
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+.choice { display: flex; gap: 10px; }
+.choice label {
+  flex: 1; display: flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 10px; border: 1.5px solid var(--line); border-radius: 11px; cursor: pointer;
+  font-weight: 600; font-size: 0.92rem; text-transform: none; letter-spacing: 0; color: var(--text);
+}
+.choice input { width: auto; accent-color: var(--choc); }
+.choice label:has(input:checked) { border-color: var(--choc); background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.form-note { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+.form-error { color: #b3261e; font-size: 0.88rem; min-height: 1.3em; margin: 10px 0 0; }
+.app-main .btn { width: 100%; justify-content: center; }
+.app-main .btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+.btn-inline { width: auto !important; }
+
+/* ---------- Notices ---------- */
+.notice-box {
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
+  background: color-mix(in srgb, var(--gold) 16%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+}
+.notice-box p { margin: 0 0 10px; }
+.notice-box p:last-child { margin-bottom: 0; }
+.notice-success { background: color-mix(in srgb, #2e7d32 10%, var(--card)); border-color: color-mix(in srgb, #2e7d32 40%, transparent); }
+
+/* ---------- Order cards (My orders + Admin) ---------- */
+.order-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.order-card + .order-card { margin-top: 14px; }
+.order-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.order-head h3 { margin: 0; font-size: 1.05rem; color: var(--choc); }
+.order-head small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+.order-meta { font-size: 0.88rem; color: var(--muted); margin: 8px 0 0; }
+.order-meta strong { color: var(--text); }
+.order-price { font-size: 1.05rem; font-weight: 700; color: var(--choc); }
+.owner-note {
+  margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 0.9rem;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+.line-items { list-style: none; padding: 0; margin: 6px 0 0; }
+.line-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 0.92rem; padding: 3px 0; }
+
+.status {
+  display: inline-block; padding: 4px 10px; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap;
+}
+.status-new, .status-pending { background: #fff3cd; color: #7a5b00; }
+.status-confirmed { background: #dbeafe; color: #1e40af; }
+.status-ready { background: #ede9fe; color: #5b21b6; }
+.status-completed, .status-approved { background: #dcfce7; color: #166534; }
+.status-cancelled, .status-hidden { background: #f3f4f6; color: #4b5563; }
+
+/* ---------- Review form ---------- */
+.review-form { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.star-input { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
+.star-input input { position: absolute; opacity: 0; pointer-events: none; }
+.star-input label {
+  font-size: 1.7rem; line-height: 1; cursor: pointer; color: var(--line);
+  text-transform: none; letter-spacing: 0; margin: 0;
+}
+.star-input label:hover, .star-input label:hover ~ label,
+.star-input input:checked ~ label { color: var(--gold-dark); }
+.star-input input:focus-visible + label { outline: 2px solid var(--gold); border-radius: 4px; }
+
+/* ---------- Admin ---------- */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tabs button, .filters button {
+  border: 1.5px solid var(--line); background: var(--card); color: var(--choc);
+  border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+}
+.tabs button[aria-selected="true"], .filters button[aria-pressed="true"] {
+  background: var(--choc); color: var(--gold-2); border-color: var(--choc);
+}
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.admin-edit { display: grid; grid-template-columns: 150px 130px 1fr auto; gap: 10px; align-items: end; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.admin-edit .field { margin: 0; }
+@media (max-width: 760px) { .admin-edit { grid-template-columns: 1fr 1fr; } .admin-edit .note-field, .admin-edit button { grid-column: 1 / -1; } }
+.contact-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.contact-links a {
+  font-size: 0.82rem; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--choc);
+}
+.contact-links a:hover { border-color: var(--gold); }
+.saved-flash { color: #166534; font-size: 0.82rem; font-weight: 600; }
+.empty-state { text-align: center; color: var(--muted); padding: 30px 10px; }
+
+/* ---------- Home page: "Add to order" + header cart ---------- */
+.add-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 8px; width: 100%; padding: 9px 12px; border-radius: 999px;
+  border: 1.5px solid var(--choc); background: transparent; color: var(--choc);
+  font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.add-btn:hover { background: var(--choc); color: var(--gold-2); }
+.add-btn.is-added { background: var(--choc); color: var(--gold-2); }
+
+.cart-btn { position: relative; }
+.cart-badge {
+  position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--gold); color: var(--ink);
+  font-size: 0.7rem; font-weight: 800; display: grid; place-items: center; line-height: 1;
+}
+.cart-badge[hidden] { display: none; }
+
+.account-menu a.account-link {
+  display: block; padding: 9px 12px; margin: 0 0 6px; border-radius: 10px;
+  color: var(--choc); font-weight: 600; font-size: 0.9rem;
+}
+.account-menu a.account-link:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+
+.testi-write { margin-top: 10px; }
+.testi-track[hidden] { display: none; }
+
+/* Phones: the header gained a cart button, so drop the catalog icon there
+   (the WhatsApp catalog is still linked in the footer). */
+@media (max-width: 720px) {
+  .header-actions .whatsapp-catalog-link { display: none; }
+  .header-actions { gap: 8px; }
+}
+
+/* Phones: one compact, swipeable link row under the logo instead of a tall
+   stacked bar; and on the Order page show the cart + form before the full menu. */
+@media (max-width: 600px) {
+  .app-bar-inner { flex-wrap: wrap; gap: 4px; padding-top: 8px; padding-bottom: 8px; min-height: 0; }
+  .app-bar nav { width: 100%; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; }
+  .app-bar nav a { padding: 5px 10px; font-size: 0.8rem; white-space: nowrap; }
+}
+@media (max-width: 860px) {
+  #orderGrid > section:first-child { order: 2; }
+}
+
+/* Small phones: keep clear space between the centred logo and the
+   account / cart / WhatsApp buttons. */
+@media (max-width: 460px) {
+  .header-main { column-gap: 10px; }
+  .logo-name { font-size: 1.25rem; }
+  .site-header.scrolled .logo-name { font-size: 1.15rem; }
+  .header-actions { gap: 6px; }
+  .header-actions .icon-btn,
+  .header-actions .account-btn { width: 32px; height: 32px; }
+}
+/* Very small phones: the floating WhatsApp button covers chat, so drop
+   the header copy to keep the side margin. */
+@media (max-width: 340px) {
+  .header-actions .icon-btn-wa { display: none; }
+}
+
+/* ---------- Menu prices ---------- */
+.pick-row span small.pack, .cart-row span small.pack {
+  display: block; font-size: 0.8rem; color: var(--gold-deep); font-weight: 600; margin-top: 2px;
+}
+.cart-money { border-top: 0; padding-top: 4px; margin-top: 0; font-size: 1.05rem; color: var(--choc); }
+.cart-money[hidden] { display: none; }
+.line-items small.muted { color: var(--muted); font-weight: 400; }
+.tile-price { display: block; padding: 2px 14px 0; font-size: 0.82rem; font-weight: 700; color: var(--gold-deep); }
+.menu-cat { font-family: var(--font-head); font-size: 1.15rem; color: var(--choc); margin: 22px 0 10px; }
+.product-fields { grid-template-columns: 110px 110px 110px 1fr auto; }
+.field label.check {
+  display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;
+  font-size: 0.9rem; color: var(--text); font-weight: 600; padding: 11px 0; cursor: pointer;
+}
+.field label.check input { width: 18px; height: 18px; accent-color: var(--choc); }
+@media (max-width: 760px) { .product-fields { grid-template-columns: 1fr 1fr; } }
+.filters[hidden] { display: none; }
+.price-note.has-price { text-transform: none; letter-spacing: 0.02em; font-size: 0.85rem; }
+
+/* "Or share on WhatsApp" sits on a light background */
+.testi-cta .btn-outline { color: var(--choc); border-color: var(--choc); }
+.testi-cta .btn-outline:hover { background: var(--choc); color: var(--gold-2); }

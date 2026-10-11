@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
 
@@ -26,6 +27,7 @@
     <symbol id="i-leaf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c3-4 6-6 9-8"/></g></symbol>
     <symbol id="i-flame" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 21c-4 0-6.5-2.7-6.5-6.2 0-3.7 3-5.6 4-9.3 2.6 1.7 4 4 3.8 6.6 1-.6 1.7-1.6 2-2.8 1.8 1.6 3.2 3.4 3.2 5.6 0 3.5-2.5 6.1-6.5 6.1z"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></g></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></g></symbol>
     <symbol id="i-chat"viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 5h16v11H9l-5 4z"/></symbol>
   </svg>
 
@@ -49,9 +51,12 @@
           </button>
           <div class="account-menu hidden" id="accountMenu">
             <p class="account-email" id="accountEmail"></p>
+            <a href="my-orders.html" class="account-link">My orders</a>
+            <a href="admin.html" class="account-link hidden" id="accountAdmin">Admin</a>
             <button type="button" class="account-logout" id="accountLogout">Log out</button>
           </div>
         </div>
+        <a href="order.html" class="icon-btn cart-btn" hidden aria-label="Your order"><svg><use href="#i-bag"/></svg><span class="cart-badge" data-cart-count hidden>0</span></a>
         <a href="https://www.instagram.com/moons_kitchen11/" class="icon-btn icon-btn-ig" target="_blank" rel="noopener noreferrer" aria-label="Moon's Kitchen on Instagram"><svg><use href="#i-ig"/></svg></a>
         <a href="#" class="icon-btn whatsapp-catalog-link" aria-label="View WhatsApp catalog"><svg><use href="#i-grid"/></svg></a>
         <a href="#" class="icon-btn icon-btn-wa whatsapp-link" data-item="a chat" aria-label="Chat on WhatsApp"><svg><use href="#i-wa"/></svg></a>
@@ -64,8 +69,10 @@
         <li><a href="#brownies">Brownies</a></li>
         <li><a href="#cupcakes">Cupcakes</a></li>
         <li><a href="#about">About Us</a></li>
+        <li><a href="order.html">Order Online</a></li>
         <li class="nav-drawer-only"><a href="#" class="whatsapp-link" data-item="a chat">Order on WhatsApp</a></li>
         <li class="nav-drawer-only nav-drawer-ig"><a href="https://www.instagram.com/moons_kitchen11/" target="_blank" rel="noopener noreferrer">Follow on Instagram</a></li>
+        <li class="nav-drawer-only nav-drawer-account"><a href="my-orders.html">My orders</a></li>
         <li class="nav-drawer-only nav-drawer-account" id="drawerAccount"><a href="login.html" id="drawerAccountLink">Sign in</a></li>
       </ul>
     </nav>
@@ -238,7 +245,7 @@
         <div class="section-head reveal">
           <div>
             <h2 class="section-title">Signature Ragi Cookies</h2>
-            <p class="section-sub">Every item is baked fresh to order &mdash; message us for pricing, quantities &amp; availability.</p>
+            <p class="section-sub">Every item is baked fresh to order &mdash; cookie prices are per 500 g.</p>
           </div>
           <a href="#" class="view-all whatsapp-catalog-link">View Catalog</a>
         </div>
@@ -398,6 +405,10 @@
             <span class="feature-emoji" data-photo="brownie" aria-hidden="true">🍫</span>
           </div>
           <div class="feature-track">
+            <a href="#" class="tile whatsapp-link" data-item="Nutella Brownies – Box of 9"><span class="tile-media" data-photo="brownie" style="--tile:#e4c9b8">🍫</span><span class="tile-name">Nutella <small>Box of 9</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Nutella Brownies – 5 pcs"><span class="tile-media" data-photo="brownie" style="--tile:#e8cfbf">🍫</span><span class="tile-name">Nutella <small>5 pcs</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Dark Brownies – Box of 9"><span class="tile-media" data-photo="brownie" style="--tile:#dfc1b1">🟤</span><span class="tile-name">Dark <small>Box of 9</small></span><span class="tile-cta">Order →</span></a>
+            <a href="#" class="tile whatsapp-link" data-item="Dark Brownies – 4 pcs"><span class="tile-media" data-photo="brownie" style="--tile:#e3c6b6">🟤</span><span class="tile-name">Dark <small>4 pcs</small></span><span class="tile-cta">Order →</span></a>
             <a href="#" class="tile whatsapp-link" data-item="Fudge Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#e7cdbd">🍫</span><span class="tile-name">Fudge Brownie</span><span class="tile-cta">Order →</span></a>
             <a href="#" class="tile whatsapp-link" data-item="Chewy Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#e9d3c4">🍫</span><span class="tile-name">Chewy Brownie</span><span class="tile-cta">Order →</span></a>
             <a href="#" class="tile whatsapp-link" data-item="Cakey Brownie"><span class="tile-media" data-photo="brownie" style="--tile:#ecd8ca">🍰</span><span class="tile-name">Cakey Brownie</span><span class="tile-cta">Order →</span></a>
@@ -483,7 +494,8 @@
         <div class="testi-track" id="testiTrack"></div>
         <div class="testi-cta reveal">
           <p>Tried our bakes? We'd love to hear from you.</p>
-          <a href="#" class="btn btn-dark btn-sm whatsapp-review-link"><svg class="btn-icon"><use href="#i-wa"/></svg>Share Your Review</a>
+          <a href="my-orders.html" class="btn btn-dark btn-sm">★ Write a Review</a>
+          <a href="#" class="btn btn-outline btn-sm whatsapp-review-link testi-write"><svg class="btn-icon"><use href="#i-wa"/></svg>Or share on WhatsApp</a>
         </div>
       </div>
     </section>
@@ -508,15 +520,15 @@
                   <span>How do I place an order?</span><span class="faq-icon" aria-hidden="true"></span>
                 </button>
               </h3>
-              <div class="faq-a" id="faq-a0" role="region" aria-labelledby="faq-q0"><div><p>Tap any <strong>Order</strong> button on this page &mdash; WhatsApp opens with that item already filled in. Send the message and we'll confirm price, quantity and pickup or delivery with you over chat.</p></div></div>
+              <div class="faq-a" id="faq-a0" role="region" aria-labelledby="faq-q0"><div><p>Two easy ways: tap <strong>Add to order</strong> and place it online from the <a href="order.html">Order page</a> (you can track it under <strong>My orders</strong>), or tap any <strong>Order</strong> button to send it on WhatsApp. Either way we'll confirm the price and pickup or delivery with you.</p></div></div>
             </div>
             <div class="faq-item">
               <h3 class="faq-q">
                 <button type="button" aria-expanded="false" aria-controls="faq-a1" id="faq-q1">
-                  <span>Why aren't prices listed on the website?</span><span class="faq-icon" aria-hidden="true"></span>
+                  <span>How does pricing work?</span><span class="faq-icon" aria-hidden="true"></span>
                 </button>
               </h3>
-              <div class="faq-a" id="faq-a1" role="region" aria-labelledby="faq-q1"><div><p>Every bake is made fresh to order in small batches, so the price depends on the item and how much you need. Message us on WhatsApp and we'll share current prices straight away.</p></div></div>
+              <div class="faq-a" id="faq-a1" role="region" aria-labelledby="faq-q1"><div><p>Prices are shown with each item &mdash; cookies are priced per 500 g, brownies per box or pieces and cupcakes per piece. Everything is baked fresh to order, so we confirm the final total (including any delivery charge) when we confirm your order. For bigger or custom orders, message us on WhatsApp.</p></div></div>
             </div>
             <div class="faq-item">
               <h3 class="faq-q">
@@ -548,7 +560,7 @@
                   <span>Do you offer pickup or delivery?</span><span class="faq-icon" aria-hidden="true"></span>
                 </button>
               </h3>
-              <div class="faq-a" id="faq-a5" role="region" aria-labelledby="faq-q5"><div><p>Both can be arranged. Share your location when you order on WhatsApp and we'll sort out pickup or delivery with you over chat.</p></div></div>
+              <div class="faq-a" id="faq-a5" role="region" aria-labelledby="faq-q5"><div><p>Both can be arranged. Pickup is from Amalapuram, BlackBridge Road, East Godavari District (Konaseema), Andhra Pradesh &ndash; 533201. For delivery, share your location when you order and we'll sort it out with you over chat. Delivery charges apply and are confirmed when we confirm your order.</p></div></div>
             </div>
             <div class="faq-item">
               <h3 class="faq-q">
@@ -568,7 +580,7 @@
         <div class="trust-item"><span class="trust-icon"><svg><use href="#i-clock"/></svg></span><div><strong>Baked to Order</strong><span>Never off a shelf</span></div></div>
         <div class="trust-item"><span class="trust-icon"><svg><use href="#i-leaf"/></svg></span><div><strong>Real Grain</strong><span>Ragi, jowar &amp; millet</span></div></div>
         <div class="trust-item"><span class="trust-icon"><svg><use href="#i-flame"/></svg></span><div><strong>Slow Baked</strong><span>Small home batches</span></div></div>
-        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-chat"/></svg></span><div><strong>Easy Ordering</strong><span>Straight on WhatsApp</span></div></div>
+        <div class="trust-item"><span class="trust-icon"><svg><use href="#i-chat"/></svg></span><div><strong>Easy Ordering</strong><span>Online or on WhatsApp</span></div></div>
       </div>
     </section>
 
@@ -652,6 +664,7 @@
   <!-- Floating WhatsApp button -->
   <a href="#" class="fab-whatsapp whatsapp-link" data-item="a chat" aria-label="Order on WhatsApp"><svg><use href="#i-wa"/></svg></a>
 
+  <script src="js/app.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

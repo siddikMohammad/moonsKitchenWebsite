@@ -158,13 +158,15 @@
 
   var testiTrack = document.getElementById("testiTrack");
   var testiNav = document.getElementById("testiNav");
-  if (testiTrack && TESTIMONIALS.length) {
+
+  function renderTestimonials(list) {
+    if (!testiTrack) return;
     var esc = function (str) {
       var d = document.createElement("div");
       d.textContent = str == null ? "" : String(str);
       return d.innerHTML;
     };
-    TESTIMONIALS.forEach(function (t) {
+    list.forEach(function (t) {
       var rating = Math.max(0, Math.min(5, Math.round(t.rating || 0)));
       var card = document.createElement("figure");
       card.className = "testi-card";
@@ -177,7 +179,9 @@
         "<small>" + esc([t.place, t.item].filter(Boolean).join(" · ")) + "</small></span></figcaption>";
       testiTrack.appendChild(card);
     });
-    if (testiNav && TESTIMONIALS.length > 1) {
+    var total = testiTrack.children.length;
+    testiTrack.hidden = total === 0;
+    if (testiNav && total > 1 && testiNav.hidden) {
       testiNav.hidden = false;
       testiNav.querySelectorAll(".testi-arrow").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -186,8 +190,20 @@
         });
       });
     }
-  } else if (testiTrack) {
-    testiTrack.remove();
+  }
+
+  // Hand-added testimonials first, then customer reviews approved on the admin page.
+  if (testiTrack) testiTrack.hidden = true;
+  renderTestimonials(TESTIMONIALS);
+  if (testiTrack && location.protocol !== "file:") {
+    fetch("/.netlify/functions/reviews")
+      .then(function (res) { return res.ok ? res.json() : { reviews: [] }; })
+      .then(function (data) {
+        renderTestimonials((data.reviews || []).map(function (r) {
+          return { name: r.display_name, rating: r.rating, text: r.comment, item: r.item_summary };
+        }));
+      })
+      .catch(function () {});
   }
 
   /* ------------------------------------------------------------
@@ -429,6 +445,123 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ------------------------------------------------------------
+   * "Add to order" buttons on product cards. They fill the cart used by
+   * the Order page (order.html); the WhatsApp "Order" button stays too.
+   * ---------------------------------------------------------- */
+  // Only signed-in customers get the cart (header bag + Add to order);
+  // everyone else keeps the plain WhatsApp order buttons.
+  if (window.MK) MK.session().then(function (s) {
+    if (!s || !s.loggedIn) return;
+    var cartBtn = document.querySelector(".cart-btn");
+    if (cartBtn) cartBtn.hidden = false;
+
+    document.querySelectorAll(".product-card .order-btn[data-item]").forEach(function (waBtn) {
+      var item = waBtn.getAttribute("data-item");
+      var add = document.createElement("button");
+      add.type = "button";
+      add.className = "add-btn";
+      add.setAttribute("data-add-item", item);
+      waBtn.insertAdjacentElement("afterend", add);
+    });
+
+    // Feature-row tiles (Ragi Special, brownies...) add to the cart too,
+    // instead of opening WhatsApp.
+    document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
+      tile.classList.remove("whatsapp-link");
+      tile.setAttribute("href", "#");
+      tile.removeAttribute("target");
+      tile.removeAttribute("rel");
+      tile.setAttribute("data-add-item", tile.getAttribute("data-item"));
+    });
+
+    var paintAddButtons = function () {
+      document.querySelectorAll("[data-add-item]").forEach(function (btn) {
+        var qty = MK.cart.qtyOf(btn.getAttribute("data-add-item"));
+        btn.classList.toggle("is-added", qty > 0);
+        var label = qty > 0 ? "✓ Added (" + qty + ") · +1" : "+ Add to order";
+        var cta = btn.classList.contains("tile") ? btn.querySelector(".tile-cta") : btn;
+        if (cta) cta.textContent = label;
+      });
+    };
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-add-item]");
+      if (!btn) return;
+      e.preventDefault();
+      var item = btn.getAttribute("data-add-item");
+      MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
+    });
+    document.addEventListener("mk:cart", paintAddButtons);
+    paintAddButtons();
+  });
+
+  /* ------------------------------------------------------------
+   * Prices from the admin Menu page. Priced items show their pack and
+   * price; items that are hidden or not priced yet are removed from the
+   * page. If nothing is priced yet (or the menu can't load) the page stays
+   * exactly as designed, with "Price on request" and WhatsApp ordering.
+   * ---------------------------------------------------------- */
+  if (window.MK) {
+    MK.menu().then(function (m) {
+      if (!m.priced) return;
+
+      document.querySelectorAll(".product-card").forEach(function (card) {
+        var orderBtn = card.querySelector(".order-btn[data-item]");
+        if (!orderBtn) return;
+        var p = m.byName.get(orderBtn.getAttribute("data-item"));
+        if (!p) {
+          card.style.display = "none";
+          return;
+        }
+        var note = card.querySelector(".price-note");
+        if (!note) {
+          note = document.createElement("p");
+          note.className = "price-note";
+          orderBtn.insertAdjacentElement("beforebegin", note);
+        }
+        note.textContent = MK.pack(p);
+        note.classList.add("has-price");
+      });
+
+      document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
+        var p = m.byName.get(tile.getAttribute("data-item"));
+        if (!p) {
+          tile.style.display = "none";
+          return;
+        }
+        var price = tile.querySelector(".tile-price");
+        if (!price) {
+          price = document.createElement("span");
+          price.className = "tile-price";
+          tile.querySelector(".tile-name").insertAdjacentElement("afterend", price);
+        }
+        // "Box of 9" / "5 pcs" is already in the tile name: show just the price.
+        var numbersInName = tile.querySelector(".tile-name").textContent.match(/\d+/g) || [];
+        var countInName = p.unit === "pcs" && numbersInName.indexOf(String(p.pack_size)) !== -1;
+        price.textContent = countInName ? MK.money(p.price) : MK.pack(p);
+      });
+
+      // Hide rows / sections left with nothing in them, and menu links to them.
+      var shown = function (el) { return el.style.display !== "none"; };
+      var hideBlock = function (block) {
+        block.style.display = "none";
+        if (block.id) {
+          document.querySelectorAll('.nav-links a[href="#' + block.id + '"]').forEach(function (link) {
+            link.closest("li").style.display = "none";
+          });
+        }
+      };
+      document.querySelectorAll(".feature-row").forEach(function (row) {
+        var tiles = row.querySelectorAll(".tile[data-item]");
+        if (tiles.length && ![].some.call(tiles, shown)) hideBlock(row);
+      });
+      document.querySelectorAll("#bestsellers, #ragi-cookies").forEach(function (section) {
+        var cards = section.querySelectorAll(".product-card");
+        if (cards.length && ![].some.call(cards, shown)) hideBlock(section);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------
    * Optional customer login in the header. Login is never forced:
    * the "Login" button stays until the customer signs in, then it
    * becomes an account button with a Log out option.
@@ -459,6 +592,7 @@
         accountToggle.setAttribute("aria-label", "Account: " + data.email);
         accountLogin.classList.add("hidden");
         accountToggle.classList.remove("hidden");
+        if (data.isAdmin) document.getElementById("accountAdmin").classList.remove("hidden");
 
         // Mobile drawer: swap "Sign in" for "Log out".
         var drawerLink = document.getElementById("drawerAccountLink");
@@ -488,4 +622,30 @@
 
     document.getElementById("accountLogout").addEventListener("click", logout);
   }
+
+  /* ------------------------------------------------------------
+   * Image viewer: click any product photo to see it full size.
+   * Delegated, so cards rendered later (prices, menu) work too.
+   * ---------------------------------------------------------- */
+  (function () {
+    var box = document.createElement("div");
+    box.className = "lightbox";
+    box.hidden = true;
+    box.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button><img alt="">';
+    document.body.appendChild(box);
+    var big = box.querySelector("img");
+
+    function close() { box.hidden = true; document.body.style.overflow = ""; }
+    box.addEventListener("click", function (e) { if (e.target !== big) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) close(); });
+
+    document.addEventListener("click", function (e) {
+      var img = e.target.closest && e.target.closest(".product-media img");
+      if (!img) return;
+      big.src = img.currentSrc || img.src;
+      big.alt = img.alt || "";
+      box.hidden = false;
+      document.body.style.overflow = "hidden";
+    });
+  })();
 })();
