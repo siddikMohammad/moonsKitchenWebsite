@@ -624,6 +624,226 @@
   }
 
   /* ------------------------------------------------------------
+   * Sign-in nudge + "how do you want to order?" chooser.
+   * - Visitors who aren't signed in see a dismissible bar asking them to
+   *   add their email (sign in).
+   * - Clicking any Order button asks: website or WhatsApp. WhatsApp opens a
+   *   small form so the message arrives with name, address etc. filled in.
+   * ---------------------------------------------------------- */
+  (function () {
+    if (!window.MK) return;
+    var DETAILS_KEY = "mk_order_details";
+    var PICKUP = "Amalapuram, BlackBridge Road, East Godavari District (Konaseema), Andhra Pradesh – 533201";
+
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function store(get) {
+      try { return get(); } catch (e) { return null; }
+    }
+
+    /* ----- sign-in bar ----- */
+    if (location.protocol !== "file:" && !store(function () { return sessionStorage.getItem("mk_signin_bar"); })) {
+      MK.session().then(function (s) {
+        if (!s || s.loggedIn) return;
+        var bar = el("div", "signin-bar");
+        bar.setAttribute("role", "status");
+        bar.appendChild(el("span", "signin-bar-text", "Add your email to sign in: order online, track your orders and choose delivery."));
+        var go = el("a", "signin-bar-btn", "Sign in");
+        go.href = MK.loginUrl();
+        var x = el("button", "signin-bar-x", "×");
+        x.type = "button";
+        x.setAttribute("aria-label", "Dismiss");
+        x.addEventListener("click", function () {
+          bar.remove();
+          store(function () { sessionStorage.setItem("mk_signin_bar", "1"); });
+        });
+        bar.appendChild(go);
+        bar.appendChild(x);
+        document.body.appendChild(bar);
+      });
+    }
+
+    /* ----- order chooser ----- */
+    var overlay = el("div", "order-modal");
+    overlay.hidden = true;
+    var card = el("div", "order-modal-card");
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    function close() { overlay.hidden = true; document.body.style.overflow = ""; }
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !overlay.hidden) close(); });
+
+    function closeBtn() {
+      var b = el("button", "order-modal-x", "×");
+      b.type = "button";
+      b.setAttribute("aria-label", "Close");
+      b.addEventListener("click", close);
+      return b;
+    }
+
+    function isMenuItem(item, menu) {
+      if (menu && menu.priced) return menu.byName.has(item);
+      return (window.MK_MENU || []).some(function (g) { return g.items.indexOf(item) !== -1; });
+    }
+
+    function goWebsite(item) {
+      MK.menu().then(function (m) {
+        if (isMenuItem(item, m)) MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
+      }, function () {}).then(function () { location.href = "order.html"; });
+    }
+
+    function showChoice(item) {
+      card.innerHTML = "";
+      card.appendChild(closeBtn());
+      card.appendChild(el("h3", "", "How would you like to order?"));
+      card.appendChild(el("p", "order-modal-item", item));
+      var web = el("button", "btn btn-dark", "Order on the website");
+      web.type = "button";
+      web.addEventListener("click", function () { goWebsite(item); });
+      var wa = el("button", "btn btn-wa", "Order on WhatsApp");
+      wa.type = "button";
+      wa.addEventListener("click", function () { showForm(item); });
+      card.appendChild(web);
+      card.appendChild(wa);
+      card.appendChild(el("p", "order-modal-note", "On the website you can track your order under My orders (sign in with your email)."));
+    }
+
+    function field(label, input) {
+      var wrap = el("div", "field");
+      var l = el("label", "", label);
+      wrap.appendChild(l);
+      wrap.appendChild(input);
+      return { wrap: wrap, input: input };
+    }
+    function input(type, name, ph) {
+      var i = el("input");
+      i.type = type; i.name = name; if (ph) i.placeholder = ph; i.maxLength = 120;
+      return i;
+    }
+
+    function showForm(item) {
+      var saved = store(function () { return JSON.parse(localStorage.getItem(DETAILS_KEY) || "{}"); }) || {};
+      card.innerHTML = "";
+      card.appendChild(closeBtn());
+      card.appendChild(el("h3", "", "Order on WhatsApp"));
+      card.appendChild(el("p", "order-modal-item", item));
+
+      var form = el("form", "order-modal-form");
+      form.noValidate = true;
+      var qty = field("Quantity / pack (e.g. 2 packs of 250 g)", input("text", "qty", "e.g. 2 × 250 g"));
+      var name = field("Name", input("text", "name"));
+      var phone = field("Phone (WhatsApp)", input("tel", "phone", "98765 43210"));
+      name.input.value = saved.name || "";
+      phone.input.value = saved.phone || "";
+
+      var ful = el("div", "field");
+      ful.appendChild(el("span", "label", "Pickup or delivery"));
+      var choice = el("div", "choice");
+      ["pickup", "delivery"].forEach(function (v) {
+        var lab = el("label");
+        var r = el("input");
+        r.type = "radio"; r.name = "fulfilment"; r.value = v;
+        r.checked = (saved.fulfilment || "pickup") === v;
+        lab.appendChild(r);
+        lab.appendChild(document.createTextNode(" " + (v === "pickup" ? "Pickup" : "Delivery")));
+        choice.appendChild(lab);
+      });
+      ful.appendChild(choice);
+
+      var pickupNote = el("p", "order-modal-note", "Pickup location: " + PICKUP);
+      var addr = el("textarea");
+      addr.name = "address"; addr.maxLength = 300;
+      addr.placeholder = "House no., street, area, city, PIN";
+      addr.value = saved.address || "";
+      var addrField = field("Delivery address", addr);
+      var charge = el("p", "order-modal-note", "Delivery charges apply. We'll confirm the charge with your final total.");
+      addrField.wrap.appendChild(charge);
+
+      var date = field("Preferred date (optional)", input("date", "date"));
+      var notes = el("textarea");
+      notes.name = "notes"; notes.maxLength = 300;
+      notes.placeholder = "Flavour preferences, sugar level, occasion…";
+      var notesField = field("Notes (optional)", notes);
+
+      function sync() {
+        var delivery = form.fulfilment.value === "delivery";
+        addrField.wrap.hidden = !delivery;
+        pickupNote.hidden = delivery;
+      }
+      form.addEventListener("change", sync);
+
+      var err = el("p", "form-error");
+      err.setAttribute("role", "alert");
+      var send = el("button", "btn btn-wa", "Send on WhatsApp");
+      send.type = "submit";
+      var back = el("button", "order-modal-back", "Back");
+      back.type = "button";
+      back.addEventListener("click", function () { showChoice(item); });
+
+      [qty.wrap, name.wrap, phone.wrap, ful, pickupNote, addrField.wrap, date.wrap, notesField.wrap, err, send, back]
+        .forEach(function (n) { form.appendChild(n); });
+      card.appendChild(form);
+      sync();
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var delivery = form.fulfilment.value === "delivery";
+        if (!name.input.value.trim() || !phone.input.value.trim()) {
+          err.textContent = "Please enter your name and phone number.";
+          return;
+        }
+        if (delivery && !addr.value.trim()) {
+          err.textContent = "Please enter your delivery address.";
+          return;
+        }
+        store(function () {
+          localStorage.setItem(DETAILS_KEY, JSON.stringify({
+            name: name.input.value.trim(), phone: phone.input.value.trim(),
+            address: addr.value.trim(), fulfilment: form.fulfilment.value
+          }));
+        });
+        var lines = [
+          "Hi Moon's Kitchen! I'd like to order " + item + ".",
+          ""
+        ];
+        if (qty.input.value.trim()) lines.push("Quantity: " + qty.input.value.trim());
+        lines.push("Name: " + name.input.value.trim());
+        lines.push("Phone: " + phone.input.value.trim());
+        if (delivery) {
+          lines.push("Delivery address: " + addr.value.trim());
+        } else {
+          lines.push("Pickup from: " + PICKUP);
+        }
+        if (date.input.value) lines.push("Preferred date: " + date.input.value);
+        if (notes.value.trim()) lines.push("Notes: " + notes.value.trim());
+        lines.push("", "Could you please share the price and availability?");
+        window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(lines.join("\n")), "_blank", "noopener");
+        close();
+      });
+    }
+
+    // Capture phase, so it runs before the link's own WhatsApp navigation.
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest && e.target.closest("a.whatsapp-link");
+      if (!link) return;
+      var item = link.getAttribute("data-item") || "";
+      if (!item || item === "a chat") return; // plain "chat with us" goes straight to WhatsApp
+      e.preventDefault();
+      e.stopPropagation();
+      showChoice(item);
+      overlay.hidden = false;
+      document.body.style.overflow = "hidden";
+    }, true);
+  })();
+
+  /* ------------------------------------------------------------
    * Image viewer: click any product photo to see it full size.
    * Delegated, so cards rendered later (prices, menu) work too.
    * ---------------------------------------------------------- */
