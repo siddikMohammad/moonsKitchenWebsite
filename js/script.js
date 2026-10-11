@@ -645,25 +645,37 @@
       try { return get(); } catch (e) { return null; }
     }
 
-    /* ----- sign-in bar ----- */
-    if (location.protocol !== "file:" && !store(function () { return sessionStorage.getItem("mk_signin_bar"); })) {
+    /* ----- sign-in prompt on launch ----- */
+    if (location.protocol !== "file:" && !store(function () { return sessionStorage.getItem("mk_signin_popup"); })) {
       MK.session().then(function (s) {
         if (!s || s.loggedIn) return;
-        var bar = el("div", "signin-bar");
-        bar.setAttribute("role", "status");
-        bar.appendChild(el("span", "signin-bar-text", "Add your email to sign in: order online, track your orders and choose delivery."));
-        var go = el("a", "signin-bar-btn", "Sign in");
-        go.href = MK.loginUrl();
-        var x = el("button", "signin-bar-x", "×");
+        var pop = el("div", "order-modal");
+        var box = el("div", "order-modal-card");
+        box.setAttribute("role", "dialog");
+        box.setAttribute("aria-modal", "true");
+        function dismiss() {
+          pop.remove();
+          document.body.style.overflow = "";
+          store(function () { sessionStorage.setItem("mk_signin_popup", "1"); });
+        }
+        var x = el("button", "order-modal-x", "×");
         x.type = "button";
-        x.setAttribute("aria-label", "Dismiss");
-        x.addEventListener("click", function () {
-          bar.remove();
-          store(function () { sessionStorage.setItem("mk_signin_bar", "1"); });
-        });
-        bar.appendChild(go);
-        bar.appendChild(x);
-        document.body.appendChild(bar);
+        x.setAttribute("aria-label", "Close");
+        x.addEventListener("click", dismiss);
+        box.appendChild(x);
+        box.appendChild(el("h3", "", "Welcome to Moon's Kitchen"));
+        box.appendChild(el("p", "order-modal-item", "Please sign in with your email to order online, track your orders and choose delivery."));
+        var go = el("a", "btn btn-dark", "Sign in with email");
+        go.href = MK.loginUrl();
+        box.appendChild(go);
+        var skip = el("button", "order-modal-back", "Continue without signing in");
+        skip.type = "button";
+        skip.addEventListener("click", dismiss);
+        box.appendChild(skip);
+        pop.appendChild(box);
+        pop.addEventListener("click", function (e) { if (e.target === pop) dismiss(); });
+        document.body.appendChild(pop);
+        document.body.style.overflow = "hidden";
       });
     }
 
@@ -851,19 +863,72 @@
     var box = document.createElement("div");
     box.className = "lightbox";
     box.hidden = true;
-    box.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button><img alt="">';
+    box.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button>' +
+      '<div class="lightbox-body"><img alt=""><div class="lightbox-info" hidden></div></div>';
     document.body.appendChild(box);
     var big = box.querySelector("img");
+    var info = box.querySelector(".lightbox-info");
 
     function close() { box.hidden = true; document.body.style.overflow = ""; }
-    box.addEventListener("click", function (e) { if (e.target !== big) close(); });
+    box.addEventListener("click", function (e) {
+      if (e.target.closest(".lightbox-info")) { info.classList.toggle("is-collapsed"); return; }
+      if (!e.target.closest(".lightbox-body")) close();
+    });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) close(); });
+
+    function findIngredients(name) {
+      var key = (name || "").trim().toLowerCase();
+      var list = window.MK_INGREDIENTS || [];
+      for (var i = 0; i < list.length; i++) {
+        for (var j = 0; j < list[i].names.length; j++) {
+          if (list[i].names[j].toLowerCase() === key) return list[i];
+        }
+      }
+      return null;
+    }
+
+    function showInfo(card) {
+      info.innerHTML = "";
+      info.hidden = true;
+      info.classList.remove("is-collapsed");
+      if (!card) return;
+      var h = card.querySelector("h3");
+      var btn = card.querySelector("[data-item]");
+      var entry = findIngredients(h && h.textContent) || findIngredients(btn && btn.getAttribute("data-item"));
+      if (!entry) return;
+      var title = document.createElement("h4");
+      title.textContent = (h && h.textContent.trim()) || entry.names[0];
+      info.appendChild(title);
+      if (entry.note) {
+        var note = document.createElement("p");
+        note.textContent = entry.note;
+        info.appendChild(note);
+      }
+      if (entry.ingredients.length) {
+        var label = document.createElement("strong");
+        label.textContent = "Ingredients";
+        info.appendChild(label);
+        var ul = document.createElement("ul");
+        entry.ingredients.forEach(function (t) {
+          var li = document.createElement("li");
+          li.textContent = t;
+          ul.appendChild(li);
+        });
+        info.appendChild(ul);
+      }
+      var hint = document.createElement("span");
+      hint.className = "lightbox-hint";
+      hint.textContent = "Tap here to hide / show the ingredients";
+      info.appendChild(hint);
+      info.hidden = false;
+    }
 
     document.addEventListener("click", function (e) {
       var img = e.target.closest && e.target.closest(".product-media img");
       if (!img) return;
       big.src = img.currentSrc || img.src;
       big.alt = img.alt || "";
+      showInfo(img.closest(".product-card"));
       box.hidden = false;
       document.body.style.overflow = "hidden";
     });
