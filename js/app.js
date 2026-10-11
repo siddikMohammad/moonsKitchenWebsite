@@ -100,13 +100,10 @@
     return menuPromise;
   }
 
-  var KG_FRACTIONS = { 250: "¼ kg", 500: "½ kg", 750: "¾ kg" };
-
-  // "½ kg", "1 kg", "200 g", "9 pcs", "1 pc"
+  // "250 g", "500 g", "1 kg", "9 pcs", "1 pc"
   function size(packSize, unit) {
     if (packSize == null) return "";
     if (unit === "pcs") return packSize + (packSize === 1 ? " pc" : " pcs");
-    if (KG_FRACTIONS[packSize]) return KG_FRACTIONS[packSize];
     return packSize >= 1000 ? (Math.round(packSize / 10) / 100) + " kg" : packSize + " g";
   }
 

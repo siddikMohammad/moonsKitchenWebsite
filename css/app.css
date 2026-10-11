@@ -173,6 +173,7 @@
 .add-btn.is-added { background: var(--choc); color: var(--gold-2); }
 
 .cart-btn { position: relative; }
+.cart-btn[hidden] { display: none; }
 .cart-badge {
   position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px;
   border-radius: 999px; background: var(--gold); color: var(--ink);
@@ -184,6 +185,7 @@
   display: block; padding: 9px 12px; margin: 0 0 6px; border-radius: 10px;
   color: var(--choc); font-weight: 600; font-size: 0.9rem;
 }
+.account-menu a.account-link.hidden { display: none; }
 .account-menu a.account-link:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); }
 
 .testi-write { margin-top: 10px; }
@@ -245,3 +247,17 @@
 /* "Or share on WhatsApp" sits on a light background */
 .testi-cta .btn-outline { color: var(--choc); border-color: var(--choc); }
 .testi-cta .btn-outline:hover { background: var(--choc); color: var(--gold-2); }
+
+/* Image viewer */
+.product-media img { cursor: zoom-in; }
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center;
+  justify-content: center; padding: 20px; background: rgba(20, 12, 8, 0.85);
+}
+.lightbox[hidden] { display: none; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; object-fit: contain; }
+.lightbox-close {
+  position: absolute; top: 14px; right: 18px; width: 40px; height: 40px; border: 0;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.15); color: #fff;
+  font-size: 1.8rem; line-height: 1; cursor: pointer;
+}

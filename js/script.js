@@ -448,7 +448,13 @@
    * "Add to order" buttons on product cards. They fill the cart used by
    * the Order page (order.html); the WhatsApp "Order" button stays too.
    * ---------------------------------------------------------- */
-  if (window.MK) {
+  // Only signed-in customers get the cart (header bag + Add to order);
+  // everyone else keeps the plain WhatsApp order buttons.
+  if (window.MK) MK.session().then(function (s) {
+    if (!s || !s.loggedIn) return;
+    var cartBtn = document.querySelector(".cart-btn");
+    if (cartBtn) cartBtn.hidden = false;
+
     document.querySelectorAll(".product-card .order-btn[data-item]").forEach(function (waBtn) {
       var item = waBtn.getAttribute("data-item");
       var add = document.createElement("button");
@@ -458,22 +464,35 @@
       waBtn.insertAdjacentElement("afterend", add);
     });
 
+    // Feature-row tiles (Ragi Special, brownies...) add to the cart too,
+    // instead of opening WhatsApp.
+    document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
+      tile.classList.remove("whatsapp-link");
+      tile.setAttribute("href", "#");
+      tile.removeAttribute("target");
+      tile.removeAttribute("rel");
+      tile.setAttribute("data-add-item", tile.getAttribute("data-item"));
+    });
+
     var paintAddButtons = function () {
       document.querySelectorAll("[data-add-item]").forEach(function (btn) {
         var qty = MK.cart.qtyOf(btn.getAttribute("data-add-item"));
         btn.classList.toggle("is-added", qty > 0);
-        btn.textContent = qty > 0 ? "✓ Added (" + qty + ") · +1" : "+ Add to order";
+        var label = qty > 0 ? "✓ Added (" + qty + ") · +1" : "+ Add to order";
+        var cta = btn.classList.contains("tile") ? btn.querySelector(".tile-cta") : btn;
+        if (cta) cta.textContent = label;
       });
     };
     document.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-add-item]");
       if (!btn) return;
+      e.preventDefault();
       var item = btn.getAttribute("data-add-item");
       MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
     });
     document.addEventListener("mk:cart", paintAddButtons);
     paintAddButtons();
-  }
+  });
 
   /* ------------------------------------------------------------
    * Prices from the admin Menu page. Priced items show their pack and
@@ -603,4 +622,30 @@
 
     document.getElementById("accountLogout").addEventListener("click", logout);
   }
+
+  /* ------------------------------------------------------------
+   * Image viewer: click any product photo to see it full size.
+   * Delegated, so cards rendered later (prices, menu) work too.
+   * ---------------------------------------------------------- */
+  (function () {
+    var box = document.createElement("div");
+    box.className = "lightbox";
+    box.hidden = true;
+    box.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button><img alt="">';
+    document.body.appendChild(box);
+    var big = box.querySelector("img");
+
+    function close() { box.hidden = true; document.body.style.overflow = ""; }
+    box.addEventListener("click", function (e) { if (e.target !== big) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) close(); });
+
+    document.addEventListener("click", function (e) {
+      var img = e.target.closest && e.target.closest(".product-media img");
+      if (!img) return;
+      big.src = img.currentSrc || img.src;
+      big.alt = img.alt || "";
+      box.hidden = false;
+      document.body.style.overflow = "hidden";
+    });
+  })();
 })();

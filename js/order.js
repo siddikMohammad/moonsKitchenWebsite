@@ -72,7 +72,9 @@
           var p = productOf(l.item);
           if (p) total += p.price * l.qty; else allPriced = false;
           return '<div class="cart-row"><span>' + esc(l.item) +
-            (p ? '<small class="pack">' + esc(MK.size(p.pack_size, p.unit)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
+            (p ? '<small class="pack">' + esc(l.qty > 1 && p.pack_size != null
+              ? l.qty + " × " + MK.size(p.pack_size, p.unit) + " = " + MK.size(p.pack_size * l.qty, p.unit)
+              : MK.size(p.pack_size, p.unit)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
             "</span>" + stepper(l.item) + "</div>";
         }).join("")
       : '<p class="cart-empty">Nothing yet &mdash; <a href="#pickTitle">choose items from the menu</a>.</p>';
@@ -101,7 +103,9 @@
   /* ---------- Details form ---------- */
 
   function syncAddress() {
-    addressField.hidden = form.fulfilment.value !== "delivery";
+    var delivery = form.fulfilment.value === "delivery";
+    addressField.hidden = !delivery;
+    document.getElementById("pickupAddress").hidden = delivery;
   }
   form.addEventListener("change", syncAddress);
 
@@ -123,6 +127,10 @@
       signInBox.hidden = false;
       document.getElementById("signInLink").href = MK.loginUrl();
       placeBtn.textContent = "Sign in to place order";
+      // Pickup/delivery is offered once the customer is signed in.
+      form.fulfilment[0].closest(".field").hidden = true;
+      addressField.hidden = true;
+      addressField.setAttribute("data-signed-out", "");
     }
   });
 
@@ -159,8 +167,8 @@
               name: body.name, phone: body.phone, address: body.address, fulfilment: body.fulfilment
             }));
           } catch (err) {}
+          showPlaced(data.order.id, body);
           MK.cart.clear();
-          showPlaced(data.order.id);
         })
         .catch(function (err) {
           errorEl.textContent = err.message;
@@ -172,10 +180,46 @@
     });
   });
 
-  function showPlaced(id) {
+  // Order summary shown on the confirmation: items, total, pickup/delivery.
+  function summaryHtml(body) {
+    var total = 0;
+    var allPriced = body.items.length > 0;
+    var rows = body.items.map(function (l) {
+      var p = productOf(l.item);
+      var detail = "";
+      if (p) {
+        total += p.price * l.qty;
+        var size = l.qty > 1 && p.pack_size != null
+          ? l.qty + " × " + MK.size(p.pack_size, p.unit) + " = " + MK.size(p.pack_size * l.qty, p.unit)
+          : MK.size(p.pack_size, p.unit);
+        detail = '<small class="pack">' + esc(size) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>";
+      } else {
+        allPriced = false;
+        detail = '<small class="pack">Qty ' + l.qty + "</small>";
+      }
+      return '<div class="cart-row"><span>' + esc(l.item) + detail + "</span></div>";
+    }).join("");
+
+    var html = '<div class="placed-summary">' + rows;
+    if (allPriced) {
+      html += '<div class="cart-total cart-money"><span>Estimated total</span><span>' + esc(MK.money(total)) + "</span></div>";
+    }
+    if (body.fulfilment === "delivery") {
+      html += "<p><strong>Delivery to:</strong><br />" + esc(body.address).replace(/\n/g, "<br />") + "</p>" +
+        "<p><strong>Delivery charges apply</strong> &mdash; we'll confirm the charge with your final total.</p>";
+    } else {
+      html += "<p><strong>Pickup from:</strong><br />Amalapuram, BlackBridge Road,<br />" +
+        "East Godavari District (Konaseema), Andhra Pradesh &ndash; 533201</p>";
+    }
+    if (body.preferred_date) html += "<p><strong>Preferred date:</strong> " + esc(body.preferred_date) + "</p>";
+    return html + "</div>";
+  }
+
+  function showPlaced(id, body) {
     var box = document.getElementById("placed");
     box.innerHTML =
       "<p><strong>Thank you! Your order #" + esc(id) + " has been received.</strong></p>" +
+      summaryHtml(body) +
       "<p>We'll confirm the price and timing soon &mdash; you can follow it under My orders.</p>" +
       '<a href="my-orders.html" class="btn btn-dark btn-sm btn-inline">View my orders</a>';
     box.hidden = false;
