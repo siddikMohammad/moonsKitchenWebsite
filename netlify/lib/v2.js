@@ -9,6 +9,7 @@ function v2(handler) {
     const event = {
       httpMethod: req.method,
       headers,
+      queryStringParameters: Object.fromEntries(new URL(req.url).searchParams),
       body: req.method === "GET" || req.method === "HEAD" ? null : await req.text(),
     };
     const res = await handler(event);

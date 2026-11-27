@@ -5,7 +5,9 @@ import { cpSync, rmSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT = "dist";
-const INCLUDE = ["index.html", "login.html", "privacy.html", "css", "js", "assets"];
+const INCLUDE = ["index.html", "order.html", "my-orders.html", "admin.html", "login.html", "privacy.html", "robots.txt", "sitemap.xml",
+  "googleb36896f05c4328bd.html", // Google Search Console verification: keep it, or verification is lost
+  "css", "js", "assets"];
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT);

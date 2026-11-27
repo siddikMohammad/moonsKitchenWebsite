@@ -1,0 +1,134 @@
+/* ============================================
+   Moon's Kitchen — "Moonrise" design PREVIEW
+   Only loaded with ?design=new (see js/theme.js).
+   Same page, same content: a night-sky hero with the
+   bake as a full moon, arched categories and quieter
+   product cards. Uses the theme colours throughout.
+   ============================================ */
+
+/* ---------- Header: one slim row on wide screens ---------- */
+[data-design="new"] .site-header { background: var(--ink); border-bottom-color: transparent; }
+[data-design="new"] .notice { background: var(--gold-grad); color: var(--ink); }
+@media (min-width: 1081px) {
+  [data-design="new"] .header-main { grid-template-columns: auto 1fr; }
+  [data-design="new"] .header-main .logo { grid-column: 1; }
+  [data-design="new"] .header-actions { grid-column: 2; }
+  [data-design="new"] .subnav {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    pointer-events: none;
+  }
+  [data-design="new"] .nav-links { pointer-events: auto; gap: 26px; }
+}
+
+/* ---------- Hero: night sky, the bake is the moon ---------- */
+[data-design="new"] .hero {
+  background:
+    radial-gradient(circle at 12% 22%, var(--gold-2) 0 1px, transparent 2px),
+    radial-gradient(circle at 34% 12%, var(--gold-2) 0 1px, transparent 2px),
+    radial-gradient(circle at 46% 64%, var(--gold-2) 0 1px, transparent 2px),
+    radial-gradient(circle at 22% 78%, var(--gold-2) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 62% 14%, var(--gold-2) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 92% 30%, var(--gold-2) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 46%, color-mix(in srgb, var(--gold) 34%, transparent) 0%, transparent 42%),
+    linear-gradient(180deg, var(--ink) 0%, var(--choc) 100%);
+}
+[data-design="new"] .hero::before { display: none; }
+[data-design="new"] .hero::after {
+  /* curved horizon into the page */
+  content: "";
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -1px;
+  height: 46px;
+  background: var(--ivory);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  pointer-events: none;
+}
+[data-design="new"] .hero-inner { min-height: 620px; padding-bottom: 130px; }
+[data-design="new"] .hero-copy h1,
+[data-design="new"] .hero-copy h2 { color: var(--ivory); font-size: clamp(2.5rem, 5.6vw, 4.6rem); line-height: 1.05; }
+[data-design="new"] .hero-copy h1 em,
+[data-design="new"] .hero-copy h2 em { color: var(--gold); }
+[data-design="new"] .hero-copy .eyebrow { color: var(--gold); }
+[data-design="new"] .hero-sub { color: var(--muted-dark); }
+[data-design="new"] .hero .btn-dark { background: var(--gold-grad); color: var(--ink); }
+[data-design="new"] .hero .btn-outline { border-color: var(--gold); color: var(--gold-2); }
+[data-design="new"] .hero-visual { width: min(100%, 460px); }
+[data-design="new"] .hero-photo {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--gold) 16%, transparent), 0 0 110px color-mix(in srgb, var(--gold) 50%, transparent);
+}
+[data-design="new"] .hero-visual::before { border-radius: 50%; inset: -34px; }
+[data-design="new"] .float { display: none; }
+[data-design="new"] .hero-dots,
+[data-design="new"] .hero-pause { bottom: 66px; z-index: 1; }
+[data-design="new"] .hero-dots button::before { background: color-mix(in srgb, var(--gold-2) 45%, transparent); }
+[data-design="new"] .hero-dots button.is-active::before { background: var(--gold); }
+[data-design="new"] .hero-pause { color: var(--gold-2); }
+
+/* ---------- Titles ---------- */
+[data-design="new"] .section-title { font-size: clamp(2.1rem, 4.4vw, 3.3rem); letter-spacing: -0.01em; }
+[data-design="new"] .section-head { border-bottom: none; padding-bottom: 0; }
+[data-design="new"] .section-head::after { display: none; }
+
+/* ---------- Categories: arched windows ---------- */
+[data-design="new"] .cat-circle {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  border: none;
+  border-radius: 999px 999px 20px 20px;
+  box-shadow: none;
+}
+[data-design="new"] .cat-name { font-size: 1.1rem; text-align: center; }
+@media (min-width: 721px) {
+  [data-design="new"] .cat-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+  [data-design="new"] .cat { align-items: stretch; }
+}
+
+/* ---------- Product cards: photo first ---------- */
+[data-design="new"] .product-card { background: none; border: none; box-shadow: none; overflow: visible; }
+[data-design="new"] .product-card:hover { box-shadow: none; }
+[data-design="new"] .product-media { border-radius: 24px; aspect-ratio: 4 / 5; }
+[data-design="new"] .product-body { padding: 14px 4px 4px; }
+[data-design="new"] .badge { left: 12px; right: auto; border-radius: 999px; }
+[data-design="new"] .order-btn {
+  padding: 9px 24px;
+  border: 1.5px solid var(--choc);
+  background: none;
+  color: var(--choc);
+}
+[data-design="new"] .order-btn:hover { background: var(--choc); color: var(--gold-2); }
+
+/* ---------- Category rows: alternating panels ---------- */
+[data-design="new"] .feature-row { padding: 0; border: none; background: none; gap: 30px; }
+[data-design="new"] .feature-intro { border-radius: 28px; }
+[data-design="new"] .tile { border: none; background: none; }
+[data-design="new"] .tile:hover { box-shadow: none; }
+[data-design="new"] .tile-media { border-radius: 20px; }
+[data-design="new"] .tile-name, [data-design="new"] .tile-cta { padding-left: 4px; }
+[data-design="new"] .tile .add-wrap { padding: 0 0 8px; }
+@media (min-width: 861px) {
+  [data-design="new"] .feature-row { grid-template-columns: 320px minmax(0, 1fr); }
+  [data-design="new"] .feature-row:nth-of-type(even) { grid-template-columns: minmax(0, 1fr) 320px; }
+  [data-design="new"] .feature-row:nth-of-type(even) .feature-intro { order: 2; }
+  [data-design="new"] .feature-track { grid-auto-columns: 200px; }
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 860px) {
+  [data-design="new"] .hero-inner { min-height: 0; padding-top: 48px; }
+  [data-design="new"] .hero-visual { width: min(78%, 320px); }
+  [data-design="new"] .hero-visual::before { inset: -20px; }
+}
+@media (max-width: 720px) {
+  [data-design="new"] .cat { width: 118px; }
+}

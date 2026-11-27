@@ -15,16 +15,30 @@
     var message =
       "Hi Moon's Kitchen! I'd like to order " + itemLabel + ". " +
       "Could you please share the price and availability?";
+    return buildMessageUrl(message);
+  }
+
+  function buildMessageUrl(message) {
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message);
   }
+
+  // General buttons (no single item): data-msg="order" or data-msg="chat".
+  var GENERAL_MESSAGES = {
+    order: "Hi Moon's Kitchen! I'd like to place an order. Could you please share your menu, prices and availability?",
+    chat: "Hi Moon's Kitchen! I have a question."
+  };
+
+  // Used by js/order.js, so the number stays in this one place
+  window.MoonsKitchen = { whatsappUrl: buildMessageUrl };
 
   function buildCatalogUrl() {
     return "https://wa.me/c/" + WHATSAPP_NUMBER;
   }
 
   document.querySelectorAll(".whatsapp-link").forEach(function (link) {
-    var item = link.getAttribute("data-item") || "your menu";
-    link.setAttribute("href", buildWhatsAppUrl(item));
+    var item = link.getAttribute("data-item");
+    var general = GENERAL_MESSAGES[link.getAttribute("data-msg")] || GENERAL_MESSAGES.order;
+    link.setAttribute("href", item ? buildWhatsAppUrl(item) : buildMessageUrl(general));
     link.setAttribute("target", "_blank");
     link.setAttribute("rel", "noopener noreferrer");
   });
@@ -37,11 +51,13 @@
 
   /* ------------------------------------------------------------
    * 1b. Online photos for items without our own photo yet.
-   *     Each element with data-photo="<group>" gets a random free
-   *     Unsplash photo from that group, different on every reload.
-   *     No two items share a photo until a group runs out. If a photo
-   *     fails to load, the emoji stays. To use your own photo instead,
-   *     swap the element for an <img> pointing at assets/images/.
+   *     Each element with data-photo="<group>" gets a free Unsplash
+   *     photo from that group, in order, so an item shows the same
+   *     photo on every visit. No two items share a photo until a group
+   *     runs out. Photos load only when about to scroll into view. If
+   *     a photo fails to load, the emoji stays. To use your own photo
+   *     instead, swap the element for an <img> pointing at
+   *     assets/images/.
    * ---------------------------------------------------------- */
   var PHOTO_GROUPS = {
     brownie: ["1636743715220-d8f8dd900b87", "1606313564200-e75d5e30476c", "1762922425478-7049c54bfbec",
@@ -75,24 +91,20 @@
   function nextPhoto(group) {
     var pool = PHOTO_GROUPS[group];
     if (!pool) return null;
-    if (!photoDecks[group] || !photoDecks[group].length) {
-      var deck = pool.slice();
-      for (var i = deck.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
-      }
-      photoDecks[group] = deck;
-    }
-    return photoDecks[group].pop();
+    var n = photoDecks[group] || 0;
+    photoDecks[group] = n + 1;
+    return pool[n % pool.length];
   }
 
-  document.querySelectorAll("[data-photo]").forEach(function (el) {
-    var id = nextPhoto(el.getAttribute("data-photo"));
-    if (!id) return;
+  function loadPhoto(el, id) {
     var isFeature = el.classList.contains("feature-emoji");
     var size = isFeature ? "w=600&h=450" : "w=500&h=500";
     var img = new Image();
-    img.alt = "";
+    // Tiles and categories already name the item in their link text;
+    // product cards get a description.
+    var card = el.closest(".product-card");
+    var title = card && card.querySelector("h3");
+    img.alt = title ? title.textContent + " (representative photo)" : "";
     img.decoding = "async";
     img.className = isFeature ? "feature-img" : "online-photo";
     img.onload = function () {
@@ -104,45 +116,161 @@
       }
     };
     img.src = "https://images.unsplash.com/photo-" + id + "?" + size + "&fit=crop&auto=format&q=75";
+  }
+
+  var photoObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          photoObserver.unobserve(entry.target);
+          loadPhoto(entry.target, entry.target.getAttribute("data-photo-id"));
+        });
+      }, { rootMargin: "400px" })
+    : null;
+
+  document.querySelectorAll("[data-photo]").forEach(function (el) {
+    var id = nextPhoto(el.getAttribute("data-photo"));
+    if (!id) return;
+    if (!photoObserver) {
+      loadPhoto(el, id);
+      return;
+    }
+    el.setAttribute("data-photo-id", id);
+    photoObserver.observe(el);
   });
 
   /* ------------------------------------------------------------
-   * 1c. Instagram reels
-   *     Paste reel links here (copy from Instagram: ••• → Copy link).
-   *     While this list is empty, the Reels section shows photo cards
-   *     that open the Instagram profile instead.
-   *     Example: "https://www.instagram.com/reel/ABC123xyz/"
+   * 1c. Instagram reels and photo posts
+   *     Once INSTAGRAM_TOKEN is set in Netlify, the newest posts and
+   *     their view counts come from /.netlify/functions/instagram by
+   *     themselves (add #noweb to a caption to keep a post off the site).
+   *     Until then, or if Instagram can't be reached, the links below
+   *     are shown instead, newest first (Instagram: ••• → Copy link).
+   *     Examples: "https://www.instagram.com/reel/ABC123xyz/"
+   *               "https://www.instagram.com/p/ABC123xyz/"
    * ---------------------------------------------------------- */
-  var INSTAGRAM_REELS = [];
+  var INSTAGRAM_POSTS = [
+    "https://www.instagram.com/reel/Df9mTZjvYt0/",
+    "https://www.instagram.com/p/DfeLGbcvr7A/",
+    "https://www.instagram.com/reel/DfXApBCvnfC/",
+    "https://www.instagram.com/reel/DfRRKKoPCrm/",
+    "https://www.instagram.com/p/DetSP9hvvuE/",
+    "https://www.instagram.com/reel/Degp-7avpYq/",
+    "https://www.instagram.com/p/DedxgnrvKea/"
+  ];
 
   var reelRow = document.getElementById("reelRow");
-  var reelCodes = INSTAGRAM_REELS.map(function (url) {
-    var m = /instagram\.com\/(?:[^/]+\/)?(?:reel|reels|p)\/([A-Za-z0-9_-]+)/.exec(url);
-    return m && m[1];
+  var igPosts = INSTAGRAM_POSTS.map(function (url) {
+    var m = /instagram\.com\/(?:[^/]+\/)?(reel|reels|p)\/([A-Za-z0-9_-]+)/.exec(url);
+    return m && { type: m[1] === "p" ? "p" : "reel", code: m[2] };
   }).filter(Boolean);
 
-  if (reelRow && reelCodes.length) {
+  var showEmbeds = function () {
+    if (!igPosts.length) return;
     reelRow.innerHTML = "";
     reelRow.classList.add("has-embeds");
-    reelCodes.forEach(function (code) {
+    igPosts.forEach(function (post, i) {
       var wrap = document.createElement("div");
       wrap.className = "reel-embed";
       var frame = document.createElement("iframe");
-      frame.src = "https://www.instagram.com/reel/" + code + "/embed/";
+      frame.src = "https://www.instagram.com/" + post.type + "/" + post.code + "/embed/";
       frame.loading = "lazy";
-      frame.title = "Moon's Kitchen reel on Instagram";
+      frame.title = "Moon's Kitchen " + (post.type === "p" ? "photo" : "video") + " on Instagram, " + (i + 1) + " of " + igPosts.length;
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute("scrolling", "no");
       wrap.appendChild(frame);
       reelRow.appendChild(wrap);
     });
+  };
+
+  var igNode = function (tag, className, text) {
+    var n = document.createElement(tag);
+    n.className = className;
+    if (text) n.textContent = text;
+    return n;
+  };
+  var igIcon = function (id) {
+    var span = document.createElement("span");
+    span.setAttribute("aria-hidden", "true");
+    span.innerHTML = '<svg><use href="#' + id + '"/></svg>';
+    return span;
+  };
+
+  // Our own cards: photo or video, caption and views
+  var showPosts = function (posts) {
+    reelRow.innerHTML = "";
+    reelRow.classList.add("has-posts");
+    posts.forEach(function (post, i) {
+      var card = igNode("div", "reel-card ig-card");
+      var name = post.caption || (post.type === "video" ? "Video" : "Photo") + " from Moon's Kitchen";
+      var img = document.createElement("img");
+      img.src = post.image;
+      img.alt = name;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.onerror = function () { img.remove(); };
+      card.appendChild(img);
+
+      if (post.video) {
+        var play = igNode("button", "reel-play");
+        play.type = "button";
+        play.setAttribute("aria-label", "Play video " + (i + 1) + ": " + name);
+        play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg>';
+        play.addEventListener("click", function () {
+          reelRow.querySelectorAll("video").forEach(function (v) { v.pause(); });
+          var video = document.createElement("video");
+          video.src = post.video;
+          video.poster = post.image;
+          video.controls = true;
+          video.playsInline = true;
+          video.setAttribute("aria-label", name);
+          // Link expired or blocked: open it on Instagram instead
+          video.onerror = function () { video.remove(); card.classList.remove("is-playing"); window.open(post.link, "_blank", "noopener"); };
+          card.classList.add("is-playing");
+          card.appendChild(video);
+          video.focus();
+          var started = video.play();
+          if (started && started.catch) started.catch(function () {});
+        });
+        card.appendChild(play);
+      }
+
+      var link = igNode("a", "ig-open");
+      link.href = post.link;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.setAttribute("aria-label", "Open on Instagram: " + name);
+      link.appendChild(igIcon("i-ig"));
+      card.appendChild(link);
+
+      if (post.caption) card.appendChild(igNode("p", "reel-caption", post.caption));
+      if (typeof post.views === "number") {
+        card.appendChild(igNode("span", "reel-ig ig-views", "▶ " + post.views.toLocaleString("en-IN") + (post.views === 1 ? " view" : " views")));
+      }
+      reelRow.appendChild(card);
+    });
+  };
+
+  if (reelRow) {
+    if (window.location.protocol === "file:") {
+      showEmbeds();
+    } else {
+      fetch("/.netlify/functions/instagram")
+        .then(function (res) { return res.ok ? res.json() : {}; })
+        .then(function (data) {
+          if (data.posts && data.posts.length) showPosts(data.posts);
+          else showEmbeds();
+        })
+        .catch(showEmbeds);
+    }
   }
 
   /* ------------------------------------------------------------
    * 1d. Testimonials — add REAL customer reviews here only
    *     (e.g. copied from WhatsApp messages or Instagram comments,
    *     with the customer's permission to show their name).
-   *     While the list is empty, the section shows just the
+   *     Reviews approved on the admin page are added after these.
+   *     With no reviews at all, the section shows just the
    *     "Share Your Review" invitation.
    *     { name: "Customer name", place: "City", item: "What they ordered",
    *       rating: 5, text: "Their words..." }
@@ -158,13 +286,19 @@
 
   var testiTrack = document.getElementById("testiTrack");
   var testiNav = document.getElementById("testiNav");
-  if (testiTrack && TESTIMONIALS.length) {
+  var showTestimonials = function (list) {
+    if (!testiTrack || !list.length) return;
+    testiTrack.hidden = false;
+    var testiTitle = document.getElementById("testiTitle");
+    var testiSub = document.getElementById("testiSub");
+    if (testiTitle) testiTitle.textContent = "Kind Words";
+    if (testiSub) testiSub.textContent = "What our customers say about their Moon's Kitchen bakes.";
     var esc = function (str) {
       var d = document.createElement("div");
       d.textContent = str == null ? "" : String(str);
       return d.innerHTML;
     };
-    TESTIMONIALS.forEach(function (t) {
+    list.forEach(function (t) {
       var rating = Math.max(0, Math.min(5, Math.round(t.rating || 0)));
       var card = document.createElement("figure");
       card.className = "testi-card";
@@ -177,7 +311,7 @@
         "<small>" + esc([t.place, t.item].filter(Boolean).join(" · ")) + "</small></span></figcaption>";
       testiTrack.appendChild(card);
     });
-    if (testiNav && TESTIMONIALS.length > 1) {
+    if (testiNav && testiNav.hidden && testiTrack.children.length > 1) {
       testiNav.hidden = false;
       testiNav.querySelectorAll(".testi-arrow").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -186,8 +320,18 @@
         });
       });
     }
-  } else if (testiTrack) {
-    testiTrack.remove();
+  };
+  if (testiTrack) testiTrack.hidden = true;
+  showTestimonials(TESTIMONIALS);
+  if (testiTrack && window.location.protocol !== "file:") {
+    fetch("/.netlify/functions/reviews")
+      .then(function (res) { return res.ok ? res.json() : { reviews: [] }; })
+      .then(function (data) {
+        showTestimonials((data.reviews || []).map(function (r) {
+          return { name: r.display_name, rating: r.rating, text: r.comment, item: r.item_summary };
+        }));
+      })
+      .catch(function () {});
   }
 
   /* ------------------------------------------------------------
@@ -200,22 +344,43 @@
     var timer = null;
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // Have every photo ready before its turn, so it never pops in mid-fade
+    window.addEventListener("load", function () {
+      document.querySelectorAll(".hero-photo img").forEach(function (img) {
+        img.loading = "eager";
+        if (img.decode) img.decode().catch(function () {});
+      });
+    });
+
     var showSlide = function (index) {
-      current = (index + slides.length) % slides.length;
+      var next = (index + slides.length) % slides.length;
+      if (next !== current) {
+        // Reset the incoming slide to its start state without animating
+        // (it may still be fading out), then let it dissolve in.
+        var incoming = slides[next];
+        incoming.classList.add("no-anim");
+        void incoming.offsetWidth;
+        incoming.classList.remove("no-anim");
+      }
+      current = next;
       slides.forEach(function (slide, i) {
         slide.classList.toggle("is-active", i === current);
         slide.setAttribute("aria-hidden", String(i !== current));
       });
       dots.forEach(function (dot, i) {
         dot.classList.toggle("is-active", i === current);
-        dot.setAttribute("aria-selected", String(i === current));
+        if (i === current) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
       });
     };
 
+    var paused = false; // the visitor pressed the pause button
+    var heroPause = document.getElementById("heroPause");
+
     var startAuto = function () {
-      if (reduceMotion) return;
       clearInterval(timer);
-      timer = setInterval(function () { showSlide(current + 1); }, 5500);
+      if (reduceMotion || paused) return;
+      timer = setInterval(function () { showSlide(current + 1); }, 6500);
     };
 
     dots.forEach(function (dot, i) {
@@ -224,6 +389,16 @@
         startAuto();
       });
     });
+
+    if (heroPause && !reduceMotion) {
+      heroPause.hidden = false;
+      heroPause.addEventListener("click", function () {
+        paused = !paused;
+        heroPause.classList.toggle("is-paused", paused);
+        heroPause.setAttribute("aria-label", paused ? "Play slideshow" : "Pause slideshow");
+        startAuto();
+      });
+    }
 
     // Swipe on touch screens
     var hero = document.getElementById("home");
@@ -242,6 +417,154 @@
     showSlide(0);
     startAuto();
   }
+
+  /* ------------------------------------------------------------
+   * 2b. Arrows for side-scrolling rows
+   *     Categories, bestsellers, reels and feature tiles scroll
+   *     sideways on smaller screens. Each row gets a left/right
+   *     arrow that only shows when there is more to see that way.
+   * ---------------------------------------------------------- */
+  var SCROLL_ROWS = ".cat-row, .product-row, .product-grid, .reel-row, .feature-track";
+  var reduceMotionRows = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ARROW_PATHS = { "-1": "M15 6l-6 6 6 6", "1": "M9 6l6 6-6 6" };
+
+  document.querySelectorAll(SCROLL_ROWS).forEach(function (row) {
+    var wrap = document.createElement("div");
+    wrap.className = "scroll-wrap";
+    row.parentNode.insertBefore(wrap, row);
+    wrap.appendChild(row);
+
+    var makeArrow = function (dir) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "row-arrow row-arrow-" + (dir < 0 ? "prev" : "next") + " is-off";
+      btn.setAttribute("aria-label", dir < 0 ? "Scroll left" : "Scroll right");
+      btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" ' +
+        'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="' + ARROW_PATHS[String(dir)] + '"/></svg>';
+      btn.addEventListener("click", function () {
+        var step = Math.max(row.clientWidth * 0.8, 140) * dir;
+        row.scrollBy({ left: step, behavior: reduceMotionRows ? "auto" : "smooth" });
+      });
+      wrap.appendChild(btn);
+      return btn;
+    };
+    var prev = makeArrow(-1);
+    var next = makeArrow(1);
+
+    var update = function () {
+      var max = row.scrollWidth - row.clientWidth;
+      var atStart = max <= 2 || row.scrollLeft <= 2;
+      var atEnd = max <= 2 || row.scrollLeft >= max - 2;
+      prev.classList.toggle("is-off", atStart);
+      next.classList.toggle("is-off", atEnd);
+      prev.tabIndex = atStart ? -1 : 0;
+      next.tabIndex = atEnd ? -1 : 0;
+    };
+
+    row.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("load", update);
+    if ("ResizeObserver" in window) new ResizeObserver(update).observe(row);
+    update();
+  });
+
+  /* ------------------------------------------------------------
+   * 2c. 3D tilt + shine on product cards, tiles and categories
+   *     Mouse: the card follows the pointer while hovering.
+   *     Touch: the card leans while pressed, and lets go when the
+   *     finger lifts or starts scrolling the row.
+   *     Off for prefers-reduced-motion.
+   * ---------------------------------------------------------- */
+  if (!reduceMotionRows) {
+    document.querySelectorAll(".product-card, .tile, .cat-circle").forEach(function (card) {
+      var maxTilt = card.classList.contains("cat-circle") ? 16 : 10;
+      var frame = null;
+      var lastEvent = null;
+      card.classList.add("tilt-card");
+
+      var apply = function () {
+        frame = null;
+        if (!lastEvent) return;
+        var r = card.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        // -0.5 .. 0.5 from the card centre
+        var px = Math.min(Math.max((lastEvent.clientX - r.left) / r.width, 0), 1) - 0.5;
+        var py = Math.min(Math.max((lastEvent.clientY - r.top) / r.height, 0), 1) - 0.5;
+        card.style.setProperty("--rx", (-py * maxTilt * 2).toFixed(2) + "deg");
+        card.style.setProperty("--ry", (px * maxTilt * 2).toFixed(2) + "deg");
+        card.style.setProperty("--mx", ((px + 0.5) * 100).toFixed(1) + "%");
+        card.style.setProperty("--my", ((py + 0.5) * 100).toFixed(1) + "%");
+        card.style.setProperty("--sx", (px * 24).toFixed(1));
+        card.style.setProperty("--sy", (py * 24).toFixed(1));
+        card.classList.add("is-tilting");
+      };
+      var queue = function (e) {
+        lastEvent = e;
+        if (!frame) frame = window.requestAnimationFrame(apply);
+      };
+      var reset = function () {
+        lastEvent = null;
+        if (frame) { window.cancelAnimationFrame(frame); frame = null; }
+        card.classList.remove("is-tilting");
+      };
+
+      card.addEventListener("pointermove", function (e) {
+        if (e.pointerType === "mouse" || e.buttons) queue(e);
+      });
+      card.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "mouse") queue(e);
+      });
+      card.addEventListener("pointerleave", reset);
+      card.addEventListener("pointerup", function (e) {
+        if (e.pointerType !== "mouse") reset();
+      });
+      card.addEventListener("pointercancel", reset); // finger started scrolling
+    });
+  }
+
+  /* ------------------------------------------------------------
+   * 2d. 3D logo letters
+   *     Splits "Moon's Kitchen" into letter spans for the hover
+   *     effect (CSS "3D logo"). The link keeps an aria-label so
+   *     screen readers still read the name normally.
+   * ---------------------------------------------------------- */
+  document.querySelectorAll(".logo-name").forEach(function (logo) {
+    if (logo.querySelector(".logo-3d")) return;
+    var name = logo.textContent.replace(/\s+/g, " ").trim();
+    var wrap = document.createElement("span");
+    wrap.className = "logo-3d";
+    wrap.setAttribute("aria-hidden", "true");
+    var count = 0;
+
+    var splitInto = function (text, target) {
+      for (var i = 0; i < text.length; i++) {
+        var ch = text.charAt(i);
+        if (/\s/.test(ch)) {
+          target.appendChild(document.createTextNode(" "));
+        } else {
+          var span = document.createElement("span");
+          span.className = "logo-ch";
+          span.textContent = ch;
+          span.style.setProperty("--c", count++);
+          target.appendChild(span);
+        }
+      }
+    };
+
+    Array.prototype.forEach.call(logo.childNodes, function (node) {
+      if (node.nodeType === 3) {
+        splitInto(node.textContent, wrap);
+      } else if (node.nodeType === 1) {
+        var copy = document.createElement(node.tagName.toLowerCase());
+        splitInto(node.textContent, copy);
+        wrap.appendChild(copy);
+      }
+    });
+
+    logo.setAttribute("aria-label", name);
+    logo.textContent = "";
+    logo.appendChild(wrap);
+  });
 
   /* ------------------------------------------------------------
    * 3. Scroll animations
@@ -282,12 +605,11 @@
   }
 
   /* ------------------------------------------------------------
-   * 4. Scroll effects: slimmer header, progress bar, hero
-   *    parallax, back-to-top button (one rAF-throttled handler)
+   * 4. Scroll effects: slimmer header, progress bar,
+   *    back-to-top button (one rAF-throttled handler)
    * ---------------------------------------------------------- */
   var header = document.getElementById("siteHeader");
   var progressBar = document.getElementById("scrollProgress");
-  var heroEl = document.getElementById("home");
   var toTop = document.getElementById("toTop");
   var ticking = false;
 
@@ -299,9 +621,6 @@
     if (header) header.classList.toggle("scrolled", y > 40);
     if (progressBar) progressBar.style.setProperty("--progress", max > 0 ? Math.min(y / max, 1) : 0);
     if (toTop) toTop.classList.toggle("show", y > 700);
-    if (heroEl && !reduceMotionAll && y < heroEl.offsetHeight + 200) {
-      heroEl.style.setProperty("--hero-scroll", y);
-    }
   };
   window.addEventListener("scroll", function () {
     if (!ticking) {
@@ -324,7 +643,9 @@
   var navMap = {
     "ragi-cookies": "#ragi-cookies", "ragi-special": "#ragi-cookies",
     "brownies": "#brownies", "cupcakes": "#cupcakes", "classic-cookies": "#ragi-cookies",
-    "about": "#about"
+    "about": "#about", "cakes": "#cakes", "build-box": "#build-box",
+    // Sections with no menu link: clear the highlight
+    "home": null, "bestsellers": null, "reels": null, "reviews": null, "faq": null
   };
   var navAnchors = document.querySelectorAll("#navLinks a[href^='#']");
   if ("IntersectionObserver" in window && navAnchors.length) {
@@ -334,6 +655,10 @@
         var target = navMap[entry.target.id];
         navAnchors.forEach(function (a) {
           a.classList.toggle("active", a.getAttribute("href") === target);
+        });
+        // Phone category bar: match the exact section
+        document.querySelectorAll(".menu-bar a").forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id);
         });
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
@@ -457,6 +782,8 @@
         document.getElementById("accountName").textContent = name;
         document.getElementById("accountEmail").textContent = "Signed in as " + data.email;
         accountToggle.setAttribute("aria-label", "Account: " + data.email);
+        var adminLink = document.getElementById("accountAdmin");
+        if (adminLink) adminLink.hidden = !data.isAdmin;
         accountLogin.classList.add("hidden");
         accountToggle.classList.remove("hidden");
 

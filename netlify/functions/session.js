@@ -2,13 +2,15 @@
 // HttpOnly, so page JS can't read it directly — the header calls this instead.
 // Also hands the login page the public Google client ID (not a secret).
 
-const { readSession, getSessionToken, json } = require("../lib/session");
+const { json } = require("../lib/session");
+const { currentUser } = require("../lib/api");
 
 exports.handler = async (event) => {
-  const email = readSession(getSessionToken(event), process.env.SESSION_SECRET);
+  const user = currentUser(event);
   return json(200, {
-    loggedIn: !!email,
-    email: email || null,
+    loggedIn: !!user,
+    email: user ? user.email : null,
+    isAdmin: !!(user && user.isAdmin),
     googleClientId: process.env.GOOGLE_CLIENT_ID || null,
   });
 };

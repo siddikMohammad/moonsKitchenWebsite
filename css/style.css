@@ -3,9 +3,11 @@
    ============================================ */
 
 /* ------------------------------------------------------------
-   Colour themes. js/theme.js picks one at random on every page
-   load (never the same twice in a row) and sets it on <html>
-   as data-theme="...". Force one for testing with ?theme=rose.
+   Colour themes. js/theme.js sets one on <html> as
+   data-theme="...": a random everyday theme (caramel, rose,
+   sage, lavender, peach), or a festival theme (christmas,
+   newyear, sankranti, diwali, ramzan) on festival dates.
+   Preview one with ?theme=diwali.
    Token roles (names kept from the original design):
      --choc / --ink   coloured header, footer, feature panels
      --choc-2         hover / gradient partner for --choc
@@ -105,6 +107,106 @@
   --line: #f7e0d3;
 }
 
+/* ---- Festival themes (dates live in js/theme.js) ---- */
+
+/* Christmas: berry red, gold, pine-green accents */
+:root[data-theme="christmas"] {
+  --ink: #5c1a1b;
+  --choc: #8b2323;
+  --choc-2: #a83232;
+  --gold: #d4af37;
+  --gold-2: #f6e7b0;
+  --gold-light: #f3e3a6;
+  --gold-dark: #b8912a;
+  --gold-deep: #1f5c3a;
+  --ivory: #fffaf5;
+  --sand: #eef3ea;
+  --card: #ffffff;
+  --text: #2e1a1a;
+  --muted: #6f5450;
+  --muted-dark: #f1d6d2;
+  --line: #efe0d8;
+}
+
+/* New Year: midnight blue and gold */
+:root[data-theme="newyear"] {
+  --ink: #1b2340;
+  --choc: #26315a;
+  --choc-2: #354379;
+  --gold: #e2b857;
+  --gold-2: #f7e6b8;
+  --gold-light: #f6e2ad;
+  --gold-dark: #c49a3a;
+  --gold-deep: #8a6416;
+  --ivory: #fbfaf6;
+  --sand: #eef0f7;
+  --card: #ffffff;
+  --text: #1d2233;
+  --muted: #5a6077;
+  --muted-dark: #d9dcec;
+  --line: #e3e5ef;
+}
+
+/* Sankranti & Pongal: marigold, turmeric, sugarcane green */
+:root[data-theme="sankranti"] {
+  --ink: #6b3a08;
+  --choc: #9a4a0c;
+  --choc-2: #b85d12;
+  --gold: #f5b82e;
+  --gold-2: #ffeab5;
+  --gold-light: #fde7a8;
+  --gold-dark: #d9971a;
+  --gold-deep: #3f6b1f;
+  --ivory: #fffbf2;
+  --sand: #fdf0d6;
+  --card: #ffffff;
+  --text: #3a2410;
+  --muted: #75593a;
+  --muted-dark: #f6dcb0;
+  --line: #f4e3c1;
+}
+
+/* Diwali: deep plum and diya gold */
+:root[data-theme="diwali"] {
+  --ink: #3d0f2e;
+  --choc: #5e1742;
+  --choc-2: #7a2257;
+  --gold: #f2a92b;
+  --gold-2: #ffe2a8;
+  --gold-light: #fde0a0;
+  --gold-dark: #d88a14;
+  --gold-deep: #9c4a06;
+  --ivory: #fffaf3;
+  --sand: #fbeee0;
+  --card: #ffffff;
+  --text: #2d1424;
+  --muted: #6f5262;
+  --muted-dark: #f0d3e3;
+  --line: #f2e0e6;
+}
+
+/* Ramzan & Eid: emerald and crescent gold */
+:root[data-theme="ramzan"] {
+  --ink: #0f3b33;
+  --choc: #155247;
+  --choc-2: #1f6b5d;
+  --gold: #d9b45a;
+  --gold-2: #f4e4b4;
+  --gold-light: #f2e1ad;
+  --gold-dark: #b8923a;
+  --gold-deep: #7a5c12;
+  --ivory: #fbfaf4;
+  --sand: #eaf2ee;
+  --card: #ffffff;
+  --text: #1c2e2a;
+  --muted: #52665f;
+  --muted-dark: #d3e6df;
+  --line: #dfe9e4;
+}
+
+/* Festival wishes in the top banner */
+:root[data-festival] .notice { letter-spacing: 0.08em; font-weight: 600; }
+
 :root {
   --whatsapp: #25d366;
   --whatsapp-dark: #1a9e4c;
@@ -150,7 +252,7 @@ h1, h2, h3, h4 {
 
 p { color: var(--muted); margin: 0 0 1em; }
 a { color: inherit; text-decoration: none; }
-img { max-width: 100%; display: block; }
+img { max-width: 100%; height: auto; display: block; }
 svg { width: 1em; height: 1em; }
 
 .eyebrow {
@@ -168,8 +270,8 @@ svg { width: 1em; height: 1em; }
 /* Blocks fade and rise into place */
 .reveal {
   opacity: 0;
-  transform: translateY(36px);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+  transform: translateY(18px);
+  transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-out);
 }
 .reveal.visible { opacity: 1; transform: none; }
 
@@ -193,11 +295,11 @@ svg { width: 1em; height: 1em; }
 .stagger > * { opacity: 0; }
 .stagger.in-view > * {
   opacity: 1;
-  animation: riseIn 0.75s var(--ease-out) backwards;
-  animation-delay: calc(var(--i, 0) * 80ms);
+  animation: riseIn 0.4s var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 @keyframes riseIn {
-  from { opacity: 0; transform: translateY(34px) scale(0.96); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -328,6 +430,27 @@ svg { width: 1em; height: 1em; }
 }
 .logo-name em { font-style: italic; color: var(--gold); }
 .logo-footer.logo-name { font-size: 1.6rem; }
+
+/* 3D logo (letters are split by script.js §2d)
+   - hover: the whole word tilts and shows a gold extruded edge */
+.logo-3d {
+  display: inline-block;
+  perspective: 420px;
+  white-space: nowrap;
+  transition: transform 0.45s var(--ease-out), text-shadow 0.45s ease;
+}
+.logo-ch {
+  display: inline-block;
+}
+.logo:hover .logo-3d,
+.logo:focus-visible .logo-3d {
+  transform: perspective(320px) rotateX(16deg) rotateY(-10deg);
+  text-shadow:
+    1px 1px 0 var(--gold-deep),
+    2px 2px 0 color-mix(in srgb, var(--gold-deep) 80%, transparent),
+    3px 3px 0 color-mix(in srgb, var(--gold-deep) 55%, transparent),
+    4px 6px 10px color-mix(in srgb, var(--ink) 45%, transparent);
+}
 
 .logo-mark {
   display: grid;
@@ -525,14 +648,32 @@ svg { width: 1em; height: 1em; }
   border-radius: 24px;
   pointer-events: none;
 }
-.hero-track { display: grid; }
+/* Smooth dissolve: the new photo fades in on top of the old one,
+   which stays solid underneath until it is covered, so the picture
+   never dips or jumps. The old text fades out first, then the new
+   text comes in. The photo frame itself never moves. */
+.hero-track { display: grid; position: relative; z-index: 0; isolation: isolate; }
 .hero-slide {
   grid-area: 1 / 1;
-  opacity: 0;
+  display: grid;
+  z-index: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease, visibility 0.8s;
+  pointer-events: none;
+  transition: visibility 0s linear 1.7s;
 }
-.hero-slide.is-active { opacity: 1; visibility: visible; }
+.hero-slide.is-active { z-index: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+
+.hero-visual { opacity: 0; transition: opacity 0.4s ease 1.2s; }
+.hero-slide.is-active .hero-visual { opacity: 1; transition: opacity 1.2s ease-in-out; }
+.hero-photo img { transform: scale(1.07); transition: transform 0s linear 1.7s; }
+.hero-slide.is-active .hero-photo img { transform: none; transition: transform 2.6s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.hero-slide .float { opacity: 0; transition: opacity 0.3s ease; }
+.hero-slide.is-active .float { opacity: 1; transition: opacity 0.8s ease 0.7s; }
+
+.hero-slide.no-anim,
+.hero-slide.no-anim .hero-visual,
+.hero-slide.no-anim .hero-photo img,
+.hero-slide.no-anim .hero-copy > * { transition: none; }
 
 .hero-inner {
   display: grid;
@@ -543,12 +684,14 @@ svg { width: 1em; height: 1em; }
   padding-top: 56px;
   padding-bottom: 76px;
 }
-.hero-copy h1 {
+.hero-copy h1,
+.hero-copy h2 {
   font-size: clamp(2.2rem, 5vw, 3.8rem);
   color: var(--choc);
   margin-bottom: 0.35em;
 }
-.hero-copy h1 em {
+.hero-copy h1 em,
+.hero-copy h2 em {
   font-style: italic;
   color: var(--gold-deep);
 }
@@ -558,16 +701,18 @@ svg { width: 1em; height: 1em; }
 .hero .btn-outline { border-color: var(--choc); color: var(--choc); }
 .hero .btn-outline:hover { background: var(--choc); color: #fff; }
 
-.hero-slide .hero-copy > * { transform: translateY(18px); opacity: 0; transition: transform 0.7s ease, opacity 0.7s ease; }
-.hero-slide.is-active .hero-copy > * { transform: none; opacity: 1; }
-.hero-slide.is-active .hero-copy > *:nth-child(2) { transition-delay: 0.08s; }
-.hero-slide.is-active .hero-copy > *:nth-child(3) { transition-delay: 0.16s; }
-.hero-slide.is-active .hero-copy > *:nth-child(4) { transition-delay: 0.24s; }
+/* Leaving text: quick fade. Arriving text: gentle rise, line by line. */
+.hero-slide .hero-copy > * { transform: translateY(12px); opacity: 0; transition: opacity 0.35s ease, transform 0s linear 0.4s; }
+.hero-slide.is-active .hero-copy > * {
+  transform: none;
+  opacity: 1;
+  transition: opacity 0.8s ease, transform 0.9s var(--ease-out);
+  transition-delay: 0.4s;
+}
+.hero-slide.is-active .hero-copy > *:nth-child(2) { transition-delay: 0.5s; }
+.hero-slide.is-active .hero-copy > *:nth-child(3) { transition-delay: 0.6s; }
+.hero-slide.is-active .hero-copy > *:nth-child(4) { transition-delay: 0.7s; }
 
-.hero-inner { will-change: transform; }
-.hero-copy, .hero-visual { transform: translate3d(0, var(--hero-shift, 0px), 0); }
-.hero-visual { --hero-shift: calc(var(--hero-scroll, 0) * -0.12px); }
-.hero-copy { --hero-shift: calc(var(--hero-scroll, 0) * 0.18px); opacity: calc(1 - var(--hero-scroll, 0) / 700); }
 .hero-visual {
   position: relative;
   justify-self: center;
@@ -581,15 +726,18 @@ svg { width: 1em; height: 1em; }
   border-radius: 214px 214px 40px 40px;
   border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
 }
-.hero-visual img {
+.hero-photo {
   position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 4 / 4.4;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: 200px 200px 28px 28px;
-  border: 6px solid #fff;
+  border: 6px solid var(--card);
+  background: var(--sand);
   box-shadow: 0 24px 60px color-mix(in srgb, var(--ink) 25%, transparent);
 }
+.hero-photo img { width: 100%; height: 100%; object-fit: cover; }
 .float {
   position: absolute;
   font-size: 2.6rem;
@@ -607,22 +755,54 @@ svg { width: 1em; height: 1em; }
 .hero-dots {
   position: absolute;
   left: 50%;
-  bottom: 34px;
+  bottom: 24px;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
 }
+/* The button is the tap area; the visible dot is its ::before */
 .hero-dots button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: width 0.3s ease;
+}
+.hero-dots button::before {
+  content: "";
   width: 9px;
   height: 9px;
-  padding: 0;
   border-radius: 999px;
-  border: none;
   background: color-mix(in srgb, var(--choc) 35%, transparent);
-  cursor: pointer;
   transition: width 0.3s ease, background 0.3s ease;
 }
-.hero-dots button.is-active { width: 28px; background: var(--choc); }
+.hero-dots button.is-active { width: 44px; }
+.hero-dots button.is-active::before { width: 28px; background: var(--choc); }
+
+.hero-pause {
+  position: absolute;
+  left: calc(50% + 58px);
+  bottom: 24px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--choc);
+  font-size: 16px;
+  cursor: pointer;
+}
+.hero-pause[hidden] { display: none; }
+.hero-pause:hover { background: color-mix(in srgb, var(--choc) 12%, transparent); }
+.hero-pause .icon-play,
+.hero-pause.is-paused .icon-pause { display: none; }
+.hero-pause.is-paused .icon-play { display: block; }
 
 /* ---------- Sections ---------- */
 .section { padding: 84px 0; }
@@ -662,9 +842,12 @@ svg { width: 1em; height: 1em; }
   text-transform: uppercase;
   color: var(--gold-deep);
   border-bottom: 1px solid currentColor;
-  padding-bottom: 2px;
+  padding: 5px 0 3px;
 }
 .view-all:hover { color: var(--choc); }
+
+/* ---------- Sticky category bar (phones only, see Responsive) ---------- */
+.menu-bar { display: none; }
 
 /* ---------- Categories ---------- */
 .categories { padding-bottom: 54px; }
@@ -698,6 +881,72 @@ svg { width: 1em; height: 1em; }
   font-size: 1.02rem;
   color: var(--choc);
 }
+
+/* ---------- 3D tilt + shine (script.js §2c) ----------
+   Cards lean toward the mouse or finger, and a soft light spot
+   follows the pointer like a foil card. JS sets --rx/--ry
+   (angles) and --mx/--my (light position) and adds .is-tilting. */
+.tilt-card { position: relative; }
+.tilt-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--ivory) 60%, transparent) 0%,
+      color-mix(in srgb, var(--gold) 14%, transparent) 30%,
+      transparent 62%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.tilt-card.is-tilting::after { opacity: 1; }
+
+.product-card.is-tilting,
+.tile.is-tilting,
+.cat .cat-circle.is-tilting {
+  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px) scale(1.03);
+  transition: transform 0.12s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+  box-shadow:
+    calc(var(--sx, 0) * -1px) calc(14px + var(--sy, 0) * -1px) 34px color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.product-card.is-tilting,
+.tile.is-tilting { border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
+.cat .cat-circle.is-tilting {
+  box-shadow: 0 0 0 2px var(--gold),
+    calc(var(--sx, 0) * -1px) calc(12px + var(--sy, 0) * -1px) 26px color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+/* ---------- Arrows on side-scrolling rows (added by script.js §2b) ---------- */
+.scroll-wrap { position: relative; min-width: 0; }
+.feature-row > .scroll-wrap { align-self: center; }
+.row-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--choc);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 18%, transparent);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: opacity 0.25s ease, visibility 0.25s, background 0.25s ease, color 0.25s ease;
+}
+.row-arrow svg { width: 20px; height: 20px; }
+.row-arrow-prev { left: 4px; }
+.row-arrow-next { right: 4px; }
+.row-arrow:hover { background: var(--choc); color: #fff; border-color: var(--choc); }
+.row-arrow:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 2px; }
+.row-arrow.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
 
 /* ---------- Product cards ---------- */
 .product-row {
@@ -1021,6 +1270,44 @@ svg { width: 1em; height: 1em; }
   border: 1px solid var(--line);
 }
 .reel-embed iframe { display: block; width: 100%; height: 580px; border: 0; }
+
+/* Automatic posts with views (netlify/functions/instagram.mjs) */
+.reel-row.has-posts { grid-auto-columns: 250px; }
+.ig-card { aspect-ratio: 4 / 5.6; }
+.ig-card::after { pointer-events: none; }
+.ig-card .reel-play { padding: 0; color: inherit; cursor: pointer; }
+.ig-card .reel-play:focus-visible,
+.ig-open:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.ig-card .reel-caption {
+  margin: 0;
+  color: inherit;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ig-views { text-transform: none; letter-spacing: 0; font-size: 0.82rem; opacity: 1; }
+.ig-open {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  color: var(--gold-2);
+  font-size: 18px;
+}
+.ig-open span { display: grid; }
+.ig-card video { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: contain; background: var(--ink); }
+.ig-card.is-playing::after,
+.ig-card.is-playing .reel-play,
+.ig-card.is-playing .reel-caption,
+.ig-card.is-playing .ig-views { display: none; }
+.ig-card.is-playing .ig-open { z-index: 3; }
 
 /* ---------- Promise / About (dark, rich) ---------- */
 .promise {
@@ -1438,8 +1725,10 @@ svg { width: 1em; height: 1em; }
   color: #fff;
   margin-bottom: 1.3em;
 }
-.site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .site-footer li a {
+  display: inline-block;
+  padding: 5px 0;
   position: relative;
   font-size: 0.92rem;
   transition: color 0.2s ease, padding-left 0.25s var(--ease-out);
@@ -1547,7 +1836,8 @@ svg { width: 1em; height: 1em; }
 }
 
 @media (max-width: 860px) {
-  .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 36px; padding-top: 40px; }
+  /* Text takes the free space, so the photo sits in the same spot on every slide */
+  .hero-inner { grid-template-columns: 1fr; grid-template-rows: 1fr auto; text-align: center; gap: 36px; padding-top: 40px; }
   .hero-sub { margin-left: auto; margin-right: auto; }
   .hero-actions { justify-content: center; }
   .hero-visual { width: min(74%, 320px); }
@@ -1561,7 +1851,32 @@ svg { width: 1em; height: 1em; }
 }
 
 @media (max-width: 720px) {
-  html { scroll-padding-top: 90px; }
+  html { scroll-padding-top: 134px; }
+  .notice { font-size: 0.72rem; letter-spacing: 0; text-transform: none; padding: 8px 12px; }
+  .menu-bar {
+    position: sticky;
+    top: 54px;
+    z-index: 80;
+    display: flex;
+    gap: 8px;
+    padding: 8px 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--ivory);
+    border-bottom: 1px solid var(--line);
+  }
+  .menu-bar::-webkit-scrollbar { display: none; }
+  .menu-bar a {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--choc);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .menu-bar a.active { background: var(--choc); border-color: var(--choc); color: var(--gold-2); }
   .nav-toggle { display: flex; }
   .header-main { min-height: 64px; }
   .logo-mark { width: 38px; height: 38px; font-size: 18px; }
@@ -1640,7 +1955,16 @@ svg { width: 1em; height: 1em; }
   .cat-emoji { font-size: 2.4rem; }
   .cat-name { font-size: 0.9rem; }
 
-  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .product-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 190px;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+  .product-grid .product-card { scroll-snap-align: start; }
   .product-row { grid-auto-columns: 170px; gap: 14px; }
   .product-body { padding: 12px; }
   .product-body h3 { font-size: 0.98rem; }
@@ -1650,6 +1974,7 @@ svg { width: 1em; height: 1em; }
   .feature-track { grid-auto-columns: 140px; gap: 12px; }
   .reel-row { grid-auto-columns: 165px; gap: 12px; }
   .reel-row.has-embeds { grid-auto-columns: 300px; }
+  .reel-row.has-posts { grid-auto-columns: 220px; }
 
   .promise { padding: 68px 0; }
   .promise-stats { gap: 10px; }
@@ -1665,6 +1990,13 @@ svg { width: 1em; height: 1em; }
 
 @media (max-width: 460px) {
   .hero-actions .btn { width: 100%; }
+  /* Catalog moves into the menu drawer so the logo has room */
+  .icon-btn-catalog { display: none; }
+  .header-main { gap: 8px; }
+  .logo-name { font-size: 1.3rem; }
+  .site-header.scrolled .logo-name { font-size: 1.2rem; }
+  .row-arrow { width: 34px; height: 34px; }
+  .row-arrow svg { width: 17px; height: 17px; }
   .trust-row { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 28px; }
 }
@@ -1675,6 +2007,13 @@ svg { width: 1em; height: 1em; }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
+  /* still logo: no hover tilt */
+  .logo:hover .logo-3d, .logo:focus-visible .logo-3d { transform: none; }
+  /* no 3D tilt or shine on cards */
+  .tilt-card::after { display: none; }
+  /* slides simply swap, with no zoom */
+  .hero-photo img { transform: none; }
 }
