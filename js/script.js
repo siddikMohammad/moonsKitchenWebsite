@@ -15,16 +15,30 @@
     var message =
       "Hi Moon's Kitchen! I'd like to order " + itemLabel + ". " +
       "Could you please share the price and availability?";
+    return buildMessageUrl(message);
+  }
+
+  function buildMessageUrl(message) {
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message);
   }
+
+  // General buttons (no single item): data-msg="order" or data-msg="chat".
+  var GENERAL_MESSAGES = {
+    order: "Hi Moon's Kitchen! I'd like to place an order. Could you please share your menu, prices and availability?",
+    chat: "Hi Moon's Kitchen! I have a question."
+  };
+
+  // Used by js/order.js, so the number stays in this one place
+  window.MoonsKitchen = { whatsappUrl: buildMessageUrl };
 
   function buildCatalogUrl() {
     return "https://wa.me/c/" + WHATSAPP_NUMBER;
   }
 
   document.querySelectorAll(".whatsapp-link").forEach(function (link) {
-    var item = link.getAttribute("data-item") || "your menu";
-    link.setAttribute("href", buildWhatsAppUrl(item));
+    var item = link.getAttribute("data-item");
+    var general = GENERAL_MESSAGES[link.getAttribute("data-msg")] || GENERAL_MESSAGES.order;
+    link.setAttribute("href", item ? buildWhatsAppUrl(item) : buildMessageUrl(general));
     link.setAttribute("target", "_blank");
     link.setAttribute("rel", "noopener noreferrer");
   });
@@ -37,11 +51,13 @@
 
   /* ------------------------------------------------------------
    * 1b. Online photos for items without our own photo yet.
-   *     Each element with data-photo="<group>" gets a random free
-   *     Unsplash photo from that group, different on every reload.
-   *     No two items share a photo until a group runs out. If a photo
-   *     fails to load, the emoji stays. To use your own photo instead,
-   *     swap the element for an <img> pointing at assets/images/.
+   *     Each element with data-photo="<group>" gets a free Unsplash
+   *     photo from that group, in order, so an item shows the same
+   *     photo on every visit. No two items share a photo until a group
+   *     runs out. Photos load only when about to scroll into view. If
+   *     a photo fails to load, the emoji stays. To use your own photo
+   *     instead, swap the element for an <img> pointing at
+   *     assets/images/.
    * ---------------------------------------------------------- */
   var PHOTO_GROUPS = {
     brownie: ["1636743715220-d8f8dd900b87", "1606313564200-e75d5e30476c", "1762922425478-7049c54bfbec",
@@ -75,24 +91,20 @@
   function nextPhoto(group) {
     var pool = PHOTO_GROUPS[group];
     if (!pool) return null;
-    if (!photoDecks[group] || !photoDecks[group].length) {
-      var deck = pool.slice();
-      for (var i = deck.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
-      }
-      photoDecks[group] = deck;
-    }
-    return photoDecks[group].pop();
+    var n = photoDecks[group] || 0;
+    photoDecks[group] = n + 1;
+    return pool[n % pool.length];
   }
 
-  document.querySelectorAll("[data-photo]").forEach(function (el) {
-    var id = nextPhoto(el.getAttribute("data-photo"));
-    if (!id) return;
+  function loadPhoto(el, id) {
     var isFeature = el.classList.contains("feature-emoji");
     var size = isFeature ? "w=600&h=450" : "w=500&h=500";
     var img = new Image();
-    img.alt = "";
+    // Tiles and categories already name the item in their link text;
+    // product cards get a description.
+    var card = el.closest(".product-card");
+    var title = card && card.querySelector("h3");
+    img.alt = title ? title.textContent + " (representative photo)" : "";
     img.decoding = "async";
     img.className = isFeature ? "feature-img" : "online-photo";
     img.onload = function () {
@@ -104,45 +116,161 @@
       }
     };
     img.src = "https://images.unsplash.com/photo-" + id + "?" + size + "&fit=crop&auto=format&q=75";
+  }
+
+  var photoObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          photoObserver.unobserve(entry.target);
+          loadPhoto(entry.target, entry.target.getAttribute("data-photo-id"));
+        });
+      }, { rootMargin: "400px" })
+    : null;
+
+  document.querySelectorAll("[data-photo]").forEach(function (el) {
+    var id = nextPhoto(el.getAttribute("data-photo"));
+    if (!id) return;
+    if (!photoObserver) {
+      loadPhoto(el, id);
+      return;
+    }
+    el.setAttribute("data-photo-id", id);
+    photoObserver.observe(el);
   });
 
   /* ------------------------------------------------------------
-   * 1c. Instagram reels
-   *     Paste reel links here (copy from Instagram: ••• → Copy link).
-   *     While this list is empty, the Reels section shows photo cards
-   *     that open the Instagram profile instead.
-   *     Example: "https://www.instagram.com/reel/ABC123xyz/"
+   * 1c. Instagram reels and photo posts
+   *     Once INSTAGRAM_TOKEN is set in Netlify, the newest posts and
+   *     their view counts come from /.netlify/functions/instagram by
+   *     themselves (add #noweb to a caption to keep a post off the site).
+   *     Until then, or if Instagram can't be reached, the links below
+   *     are shown instead, newest first (Instagram: ••• → Copy link).
+   *     Examples: "https://www.instagram.com/reel/ABC123xyz/"
+   *               "https://www.instagram.com/p/ABC123xyz/"
    * ---------------------------------------------------------- */
-  var INSTAGRAM_REELS = [];
+  var INSTAGRAM_POSTS = [
+    "https://www.instagram.com/reel/Df9mTZjvYt0/",
+    "https://www.instagram.com/p/DfeLGbcvr7A/",
+    "https://www.instagram.com/reel/DfXApBCvnfC/",
+    "https://www.instagram.com/reel/DfRRKKoPCrm/",
+    "https://www.instagram.com/p/DetSP9hvvuE/",
+    "https://www.instagram.com/reel/Degp-7avpYq/",
+    "https://www.instagram.com/p/DedxgnrvKea/"
+  ];
 
   var reelRow = document.getElementById("reelRow");
-  var reelCodes = INSTAGRAM_REELS.map(function (url) {
-    var m = /instagram\.com\/(?:[^/]+\/)?(?:reel|reels|p)\/([A-Za-z0-9_-]+)/.exec(url);
-    return m && m[1];
+  var igPosts = INSTAGRAM_POSTS.map(function (url) {
+    var m = /instagram\.com\/(?:[^/]+\/)?(reel|reels|p)\/([A-Za-z0-9_-]+)/.exec(url);
+    return m && { type: m[1] === "p" ? "p" : "reel", code: m[2] };
   }).filter(Boolean);
 
-  if (reelRow && reelCodes.length) {
+  var showEmbeds = function () {
+    if (!igPosts.length) return;
     reelRow.innerHTML = "";
     reelRow.classList.add("has-embeds");
-    reelCodes.forEach(function (code) {
+    igPosts.forEach(function (post, i) {
       var wrap = document.createElement("div");
       wrap.className = "reel-embed";
       var frame = document.createElement("iframe");
-      frame.src = "https://www.instagram.com/reel/" + code + "/embed/";
+      frame.src = "https://www.instagram.com/" + post.type + "/" + post.code + "/embed/";
       frame.loading = "lazy";
-      frame.title = "Moon's Kitchen reel on Instagram";
+      frame.title = "Moon's Kitchen " + (post.type === "p" ? "photo" : "video") + " on Instagram, " + (i + 1) + " of " + igPosts.length;
       frame.setAttribute("allowfullscreen", "");
       frame.setAttribute("scrolling", "no");
       wrap.appendChild(frame);
       reelRow.appendChild(wrap);
     });
+  };
+
+  var igNode = function (tag, className, text) {
+    var n = document.createElement(tag);
+    n.className = className;
+    if (text) n.textContent = text;
+    return n;
+  };
+  var igIcon = function (id) {
+    var span = document.createElement("span");
+    span.setAttribute("aria-hidden", "true");
+    span.innerHTML = '<svg><use href="#' + id + '"/></svg>';
+    return span;
+  };
+
+  // Our own cards: photo or video, caption and views
+  var showPosts = function (posts) {
+    reelRow.innerHTML = "";
+    reelRow.classList.add("has-posts");
+    posts.forEach(function (post, i) {
+      var card = igNode("div", "reel-card ig-card");
+      var name = post.caption || (post.type === "video" ? "Video" : "Photo") + " from Moon's Kitchen";
+      var img = document.createElement("img");
+      img.src = post.image;
+      img.alt = name;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.onerror = function () { img.remove(); };
+      card.appendChild(img);
+
+      if (post.video) {
+        var play = igNode("button", "reel-play");
+        play.type = "button";
+        play.setAttribute("aria-label", "Play video " + (i + 1) + ": " + name);
+        play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg>';
+        play.addEventListener("click", function () {
+          reelRow.querySelectorAll("video").forEach(function (v) { v.pause(); });
+          var video = document.createElement("video");
+          video.src = post.video;
+          video.poster = post.image;
+          video.controls = true;
+          video.playsInline = true;
+          video.setAttribute("aria-label", name);
+          // Link expired or blocked: open it on Instagram instead
+          video.onerror = function () { video.remove(); card.classList.remove("is-playing"); window.open(post.link, "_blank", "noopener"); };
+          card.classList.add("is-playing");
+          card.appendChild(video);
+          video.focus();
+          var started = video.play();
+          if (started && started.catch) started.catch(function () {});
+        });
+        card.appendChild(play);
+      }
+
+      var link = igNode("a", "ig-open");
+      link.href = post.link;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.setAttribute("aria-label", "Open on Instagram: " + name);
+      link.appendChild(igIcon("i-ig"));
+      card.appendChild(link);
+
+      if (post.caption) card.appendChild(igNode("p", "reel-caption", post.caption));
+      if (typeof post.views === "number") {
+        card.appendChild(igNode("span", "reel-ig ig-views", "▶ " + post.views.toLocaleString("en-IN") + (post.views === 1 ? " view" : " views")));
+      }
+      reelRow.appendChild(card);
+    });
+  };
+
+  if (reelRow) {
+    if (window.location.protocol === "file:") {
+      showEmbeds();
+    } else {
+      fetch("/.netlify/functions/instagram")
+        .then(function (res) { return res.ok ? res.json() : {}; })
+        .then(function (data) {
+          if (data.posts && data.posts.length) showPosts(data.posts);
+          else showEmbeds();
+        })
+        .catch(showEmbeds);
+    }
   }
 
   /* ------------------------------------------------------------
    * 1d. Testimonials — add REAL customer reviews here only
    *     (e.g. copied from WhatsApp messages or Instagram comments,
    *     with the customer's permission to show their name).
-   *     While the list is empty, the section shows just the
+   *     Reviews approved on the admin page are added after these.
+   *     With no reviews at all, the section shows just the
    *     "Share Your Review" invitation.
    *     { name: "Customer name", place: "City", item: "What they ordered",
    *       rating: 5, text: "Their words..." }
@@ -158,9 +286,13 @@
 
   var testiTrack = document.getElementById("testiTrack");
   var testiNav = document.getElementById("testiNav");
-
-  function renderTestimonials(list) {
-    if (!testiTrack) return;
+  var showTestimonials = function (list) {
+    if (!testiTrack || !list.length) return;
+    testiTrack.hidden = false;
+    var testiTitle = document.getElementById("testiTitle");
+    var testiSub = document.getElementById("testiSub");
+    if (testiTitle) testiTitle.textContent = "Kind Words";
+    if (testiSub) testiSub.textContent = "What our customers say about their Moon's Kitchen bakes.";
     var esc = function (str) {
       var d = document.createElement("div");
       d.textContent = str == null ? "" : String(str);
@@ -179,9 +311,7 @@
         "<small>" + esc([t.place, t.item].filter(Boolean).join(" · ")) + "</small></span></figcaption>";
       testiTrack.appendChild(card);
     });
-    var total = testiTrack.children.length;
-    testiTrack.hidden = total === 0;
-    if (testiNav && total > 1 && testiNav.hidden) {
+    if (testiNav && testiNav.hidden && testiTrack.children.length > 1) {
       testiNav.hidden = false;
       testiNav.querySelectorAll(".testi-arrow").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -190,16 +320,14 @@
         });
       });
     }
-  }
-
-  // Hand-added testimonials first, then customer reviews approved on the admin page.
+  };
   if (testiTrack) testiTrack.hidden = true;
-  renderTestimonials(TESTIMONIALS);
-  if (testiTrack && location.protocol !== "file:") {
+  showTestimonials(TESTIMONIALS);
+  if (testiTrack && window.location.protocol !== "file:") {
     fetch("/.netlify/functions/reviews")
       .then(function (res) { return res.ok ? res.json() : { reviews: [] }; })
       .then(function (data) {
-        renderTestimonials((data.reviews || []).map(function (r) {
+        showTestimonials((data.reviews || []).map(function (r) {
           return { name: r.display_name, rating: r.rating, text: r.comment, item: r.item_summary };
         }));
       })
@@ -216,22 +344,43 @@
     var timer = null;
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // Have every photo ready before its turn, so it never pops in mid-fade
+    window.addEventListener("load", function () {
+      document.querySelectorAll(".hero-photo img").forEach(function (img) {
+        img.loading = "eager";
+        if (img.decode) img.decode().catch(function () {});
+      });
+    });
+
     var showSlide = function (index) {
-      current = (index + slides.length) % slides.length;
+      var next = (index + slides.length) % slides.length;
+      if (next !== current) {
+        // Reset the incoming slide to its start state without animating
+        // (it may still be fading out), then let it dissolve in.
+        var incoming = slides[next];
+        incoming.classList.add("no-anim");
+        void incoming.offsetWidth;
+        incoming.classList.remove("no-anim");
+      }
+      current = next;
       slides.forEach(function (slide, i) {
         slide.classList.toggle("is-active", i === current);
         slide.setAttribute("aria-hidden", String(i !== current));
       });
       dots.forEach(function (dot, i) {
         dot.classList.toggle("is-active", i === current);
-        dot.setAttribute("aria-selected", String(i === current));
+        if (i === current) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
       });
     };
 
+    var paused = false; // the visitor pressed the pause button
+    var heroPause = document.getElementById("heroPause");
+
     var startAuto = function () {
-      if (reduceMotion) return;
       clearInterval(timer);
-      timer = setInterval(function () { showSlide(current + 1); }, 5500);
+      if (reduceMotion || paused) return;
+      timer = setInterval(function () { showSlide(current + 1); }, 6500);
     };
 
     dots.forEach(function (dot, i) {
@@ -240,6 +389,16 @@
         startAuto();
       });
     });
+
+    if (heroPause && !reduceMotion) {
+      heroPause.hidden = false;
+      heroPause.addEventListener("click", function () {
+        paused = !paused;
+        heroPause.classList.toggle("is-paused", paused);
+        heroPause.setAttribute("aria-label", paused ? "Play slideshow" : "Pause slideshow");
+        startAuto();
+      });
+    }
 
     // Swipe on touch screens
     var hero = document.getElementById("home");
@@ -258,6 +417,154 @@
     showSlide(0);
     startAuto();
   }
+
+  /* ------------------------------------------------------------
+   * 2b. Arrows for side-scrolling rows
+   *     Categories, bestsellers, reels and feature tiles scroll
+   *     sideways on smaller screens. Each row gets a left/right
+   *     arrow that only shows when there is more to see that way.
+   * ---------------------------------------------------------- */
+  var SCROLL_ROWS = ".cat-row, .product-row, .product-grid, .reel-row, .feature-track";
+  var reduceMotionRows = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ARROW_PATHS = { "-1": "M15 6l-6 6 6 6", "1": "M9 6l6 6-6 6" };
+
+  document.querySelectorAll(SCROLL_ROWS).forEach(function (row) {
+    var wrap = document.createElement("div");
+    wrap.className = "scroll-wrap";
+    row.parentNode.insertBefore(wrap, row);
+    wrap.appendChild(row);
+
+    var makeArrow = function (dir) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "row-arrow row-arrow-" + (dir < 0 ? "prev" : "next") + " is-off";
+      btn.setAttribute("aria-label", dir < 0 ? "Scroll left" : "Scroll right");
+      btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" ' +
+        'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="' + ARROW_PATHS[String(dir)] + '"/></svg>';
+      btn.addEventListener("click", function () {
+        var step = Math.max(row.clientWidth * 0.8, 140) * dir;
+        row.scrollBy({ left: step, behavior: reduceMotionRows ? "auto" : "smooth" });
+      });
+      wrap.appendChild(btn);
+      return btn;
+    };
+    var prev = makeArrow(-1);
+    var next = makeArrow(1);
+
+    var update = function () {
+      var max = row.scrollWidth - row.clientWidth;
+      var atStart = max <= 2 || row.scrollLeft <= 2;
+      var atEnd = max <= 2 || row.scrollLeft >= max - 2;
+      prev.classList.toggle("is-off", atStart);
+      next.classList.toggle("is-off", atEnd);
+      prev.tabIndex = atStart ? -1 : 0;
+      next.tabIndex = atEnd ? -1 : 0;
+    };
+
+    row.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("load", update);
+    if ("ResizeObserver" in window) new ResizeObserver(update).observe(row);
+    update();
+  });
+
+  /* ------------------------------------------------------------
+   * 2c. 3D tilt + shine on product cards, tiles and categories
+   *     Mouse: the card follows the pointer while hovering.
+   *     Touch: the card leans while pressed, and lets go when the
+   *     finger lifts or starts scrolling the row.
+   *     Off for prefers-reduced-motion.
+   * ---------------------------------------------------------- */
+  if (!reduceMotionRows) {
+    document.querySelectorAll(".product-card, .tile, .cat-circle").forEach(function (card) {
+      var maxTilt = card.classList.contains("cat-circle") ? 16 : 10;
+      var frame = null;
+      var lastEvent = null;
+      card.classList.add("tilt-card");
+
+      var apply = function () {
+        frame = null;
+        if (!lastEvent) return;
+        var r = card.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        // -0.5 .. 0.5 from the card centre
+        var px = Math.min(Math.max((lastEvent.clientX - r.left) / r.width, 0), 1) - 0.5;
+        var py = Math.min(Math.max((lastEvent.clientY - r.top) / r.height, 0), 1) - 0.5;
+        card.style.setProperty("--rx", (-py * maxTilt * 2).toFixed(2) + "deg");
+        card.style.setProperty("--ry", (px * maxTilt * 2).toFixed(2) + "deg");
+        card.style.setProperty("--mx", ((px + 0.5) * 100).toFixed(1) + "%");
+        card.style.setProperty("--my", ((py + 0.5) * 100).toFixed(1) + "%");
+        card.style.setProperty("--sx", (px * 24).toFixed(1));
+        card.style.setProperty("--sy", (py * 24).toFixed(1));
+        card.classList.add("is-tilting");
+      };
+      var queue = function (e) {
+        lastEvent = e;
+        if (!frame) frame = window.requestAnimationFrame(apply);
+      };
+      var reset = function () {
+        lastEvent = null;
+        if (frame) { window.cancelAnimationFrame(frame); frame = null; }
+        card.classList.remove("is-tilting");
+      };
+
+      card.addEventListener("pointermove", function (e) {
+        if (e.pointerType === "mouse" || e.buttons) queue(e);
+      });
+      card.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "mouse") queue(e);
+      });
+      card.addEventListener("pointerleave", reset);
+      card.addEventListener("pointerup", function (e) {
+        if (e.pointerType !== "mouse") reset();
+      });
+      card.addEventListener("pointercancel", reset); // finger started scrolling
+    });
+  }
+
+  /* ------------------------------------------------------------
+   * 2d. 3D logo letters
+   *     Splits "Moon's Kitchen" into letter spans for the hover
+   *     effect (CSS "3D logo"). The link keeps an aria-label so
+   *     screen readers still read the name normally.
+   * ---------------------------------------------------------- */
+  document.querySelectorAll(".logo-name").forEach(function (logo) {
+    if (logo.querySelector(".logo-3d")) return;
+    var name = logo.textContent.replace(/\s+/g, " ").trim();
+    var wrap = document.createElement("span");
+    wrap.className = "logo-3d";
+    wrap.setAttribute("aria-hidden", "true");
+    var count = 0;
+
+    var splitInto = function (text, target) {
+      for (var i = 0; i < text.length; i++) {
+        var ch = text.charAt(i);
+        if (/\s/.test(ch)) {
+          target.appendChild(document.createTextNode(" "));
+        } else {
+          var span = document.createElement("span");
+          span.className = "logo-ch";
+          span.textContent = ch;
+          span.style.setProperty("--c", count++);
+          target.appendChild(span);
+        }
+      }
+    };
+
+    Array.prototype.forEach.call(logo.childNodes, function (node) {
+      if (node.nodeType === 3) {
+        splitInto(node.textContent, wrap);
+      } else if (node.nodeType === 1) {
+        var copy = document.createElement(node.tagName.toLowerCase());
+        splitInto(node.textContent, copy);
+        wrap.appendChild(copy);
+      }
+    });
+
+    logo.setAttribute("aria-label", name);
+    logo.textContent = "";
+    logo.appendChild(wrap);
+  });
 
   /* ------------------------------------------------------------
    * 3. Scroll animations
@@ -298,12 +605,11 @@
   }
 
   /* ------------------------------------------------------------
-   * 4. Scroll effects: slimmer header, progress bar, hero
-   *    parallax, back-to-top button (one rAF-throttled handler)
+   * 4. Scroll effects: slimmer header, progress bar,
+   *    back-to-top button (one rAF-throttled handler)
    * ---------------------------------------------------------- */
   var header = document.getElementById("siteHeader");
   var progressBar = document.getElementById("scrollProgress");
-  var heroEl = document.getElementById("home");
   var toTop = document.getElementById("toTop");
   var ticking = false;
 
@@ -315,9 +621,6 @@
     if (header) header.classList.toggle("scrolled", y > 40);
     if (progressBar) progressBar.style.setProperty("--progress", max > 0 ? Math.min(y / max, 1) : 0);
     if (toTop) toTop.classList.toggle("show", y > 700);
-    if (heroEl && !reduceMotionAll && y < heroEl.offsetHeight + 200) {
-      heroEl.style.setProperty("--hero-scroll", y);
-    }
   };
   window.addEventListener("scroll", function () {
     if (!ticking) {
@@ -340,7 +643,9 @@
   var navMap = {
     "ragi-cookies": "#ragi-cookies", "ragi-special": "#ragi-cookies",
     "brownies": "#brownies", "cupcakes": "#cupcakes", "classic-cookies": "#ragi-cookies",
-    "about": "#about"
+    "about": "#about", "cakes": "#cakes", "build-box": "#build-box",
+    // Sections with no menu link: clear the highlight
+    "home": null, "bestsellers": null, "reels": null, "reviews": null, "faq": null
   };
   var navAnchors = document.querySelectorAll("#navLinks a[href^='#']");
   if ("IntersectionObserver" in window && navAnchors.length) {
@@ -350,6 +655,10 @@
         var target = navMap[entry.target.id];
         navAnchors.forEach(function (a) {
           a.classList.toggle("active", a.getAttribute("href") === target);
+        });
+        // Phone category bar: match the exact section
+        document.querySelectorAll(".menu-bar a").forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id);
         });
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
@@ -445,123 +754,6 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ------------------------------------------------------------
-   * "Add to order" buttons on product cards. They fill the cart used by
-   * the Order page (order.html); the WhatsApp "Order" button stays too.
-   * ---------------------------------------------------------- */
-  // Only signed-in customers get the cart (header bag + Add to order);
-  // everyone else keeps the plain WhatsApp order buttons.
-  if (window.MK) MK.session().then(function (s) {
-    if (!s || !s.loggedIn) return;
-    var cartBtn = document.querySelector(".cart-btn");
-    if (cartBtn) cartBtn.hidden = false;
-
-    document.querySelectorAll(".product-card .order-btn[data-item]").forEach(function (waBtn) {
-      var item = waBtn.getAttribute("data-item");
-      var add = document.createElement("button");
-      add.type = "button";
-      add.className = "add-btn";
-      add.setAttribute("data-add-item", item);
-      waBtn.insertAdjacentElement("afterend", add);
-    });
-
-    // Feature-row tiles (Ragi Special, brownies...) add to the cart too,
-    // instead of opening WhatsApp.
-    document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
-      tile.classList.remove("whatsapp-link");
-      tile.setAttribute("href", "#");
-      tile.removeAttribute("target");
-      tile.removeAttribute("rel");
-      tile.setAttribute("data-add-item", tile.getAttribute("data-item"));
-    });
-
-    var paintAddButtons = function () {
-      document.querySelectorAll("[data-add-item]").forEach(function (btn) {
-        var qty = MK.cart.qtyOf(btn.getAttribute("data-add-item"));
-        btn.classList.toggle("is-added", qty > 0);
-        var label = qty > 0 ? "✓ Added (" + qty + ") · +1" : "+ Add to order";
-        var cta = btn.classList.contains("tile") ? btn.querySelector(".tile-cta") : btn;
-        if (cta) cta.textContent = label;
-      });
-    };
-    document.addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-add-item]");
-      if (!btn) return;
-      e.preventDefault();
-      var item = btn.getAttribute("data-add-item");
-      MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
-    });
-    document.addEventListener("mk:cart", paintAddButtons);
-    paintAddButtons();
-  });
-
-  /* ------------------------------------------------------------
-   * Prices from the admin Menu page. Priced items show their pack and
-   * price; items that are hidden or not priced yet are removed from the
-   * page. If nothing is priced yet (or the menu can't load) the page stays
-   * exactly as designed, with "Price on request" and WhatsApp ordering.
-   * ---------------------------------------------------------- */
-  if (window.MK) {
-    MK.menu().then(function (m) {
-      if (!m.priced) return;
-
-      document.querySelectorAll(".product-card").forEach(function (card) {
-        var orderBtn = card.querySelector(".order-btn[data-item]");
-        if (!orderBtn) return;
-        var p = m.byName.get(orderBtn.getAttribute("data-item"));
-        if (!p) {
-          card.style.display = "none";
-          return;
-        }
-        var note = card.querySelector(".price-note");
-        if (!note) {
-          note = document.createElement("p");
-          note.className = "price-note";
-          orderBtn.insertAdjacentElement("beforebegin", note);
-        }
-        note.textContent = MK.pack(p);
-        note.classList.add("has-price");
-      });
-
-      document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
-        var p = m.byName.get(tile.getAttribute("data-item"));
-        if (!p) {
-          tile.style.display = "none";
-          return;
-        }
-        var price = tile.querySelector(".tile-price");
-        if (!price) {
-          price = document.createElement("span");
-          price.className = "tile-price";
-          tile.querySelector(".tile-name").insertAdjacentElement("afterend", price);
-        }
-        // "Box of 9" / "5 pcs" is already in the tile name: show just the price.
-        var numbersInName = tile.querySelector(".tile-name").textContent.match(/\d+/g) || [];
-        var countInName = p.unit === "pcs" && numbersInName.indexOf(String(p.pack_size)) !== -1;
-        price.textContent = countInName ? MK.money(p.price) : MK.pack(p);
-      });
-
-      // Hide rows / sections left with nothing in them, and menu links to them.
-      var shown = function (el) { return el.style.display !== "none"; };
-      var hideBlock = function (block) {
-        block.style.display = "none";
-        if (block.id) {
-          document.querySelectorAll('.nav-links a[href="#' + block.id + '"]').forEach(function (link) {
-            link.closest("li").style.display = "none";
-          });
-        }
-      };
-      document.querySelectorAll(".feature-row").forEach(function (row) {
-        var tiles = row.querySelectorAll(".tile[data-item]");
-        if (tiles.length && ![].some.call(tiles, shown)) hideBlock(row);
-      });
-      document.querySelectorAll("#bestsellers, #ragi-cookies").forEach(function (section) {
-        var cards = section.querySelectorAll(".product-card");
-        if (cards.length && ![].some.call(cards, shown)) hideBlock(section);
-      });
-    });
-  }
-
-  /* ------------------------------------------------------------
    * Optional customer login in the header. Login is never forced:
    * the "Login" button stays until the customer signs in, then it
    * becomes an account button with a Log out option.
@@ -590,9 +782,10 @@
         document.getElementById("accountName").textContent = name;
         document.getElementById("accountEmail").textContent = "Signed in as " + data.email;
         accountToggle.setAttribute("aria-label", "Account: " + data.email);
+        var adminLink = document.getElementById("accountAdmin");
+        if (adminLink) adminLink.hidden = !data.isAdmin;
         accountLogin.classList.add("hidden");
         accountToggle.classList.remove("hidden");
-        if (data.isAdmin) document.getElementById("accountAdmin").classList.remove("hidden");
 
         // Mobile drawer: swap "Sign in" for "Log out".
         var drawerLink = document.getElementById("drawerAccountLink");
@@ -622,315 +815,4 @@
 
     document.getElementById("accountLogout").addEventListener("click", logout);
   }
-
-  /* ------------------------------------------------------------
-   * Sign-in nudge + "how do you want to order?" chooser.
-   * - Visitors who aren't signed in see a dismissible bar asking them to
-   *   add their email (sign in).
-   * - Clicking any Order button asks: website or WhatsApp. WhatsApp opens a
-   *   small form so the message arrives with name, address etc. filled in.
-   * ---------------------------------------------------------- */
-  (function () {
-    if (!window.MK) return;
-    var DETAILS_KEY = "mk_order_details";
-    var PICKUP = "Amalapuram, BlackBridge Road, East Godavari District (Konaseema), Andhra Pradesh – 533201";
-
-    function el(tag, cls, text) {
-      var n = document.createElement(tag);
-      if (cls) n.className = cls;
-      if (text != null) n.textContent = text;
-      return n;
-    }
-    function store(get) {
-      try { return get(); } catch (e) { return null; }
-    }
-
-    /* ----- sign-in prompt on launch ----- */
-    if (location.protocol !== "file:" && !store(function () { return sessionStorage.getItem("mk_signin_popup"); })) {
-      MK.session().then(function (s) {
-        if (!s || s.loggedIn) return;
-        var pop = el("div", "order-modal");
-        var box = el("div", "order-modal-card");
-        box.setAttribute("role", "dialog");
-        box.setAttribute("aria-modal", "true");
-        function dismiss() {
-          pop.remove();
-          document.body.style.overflow = "";
-          store(function () { sessionStorage.setItem("mk_signin_popup", "1"); });
-        }
-        var x = el("button", "order-modal-x", "×");
-        x.type = "button";
-        x.setAttribute("aria-label", "Close");
-        x.addEventListener("click", dismiss);
-        box.appendChild(x);
-        box.appendChild(el("h3", "", "Welcome to Moon's Kitchen"));
-        box.appendChild(el("p", "order-modal-item", "Please sign in with your email to order online, track your orders and choose delivery."));
-        var go = el("a", "btn btn-dark", "Sign in with email");
-        go.href = MK.loginUrl();
-        box.appendChild(go);
-        var skip = el("button", "order-modal-back", "Continue without signing in");
-        skip.type = "button";
-        skip.addEventListener("click", dismiss);
-        box.appendChild(skip);
-        pop.appendChild(box);
-        pop.addEventListener("click", function (e) { if (e.target === pop) dismiss(); });
-        document.body.appendChild(pop);
-        document.body.style.overflow = "hidden";
-      });
-    }
-
-    /* ----- order chooser ----- */
-    var overlay = el("div", "order-modal");
-    overlay.hidden = true;
-    var card = el("div", "order-modal-card");
-    card.setAttribute("role", "dialog");
-    card.setAttribute("aria-modal", "true");
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    function close() { overlay.hidden = true; document.body.style.overflow = ""; }
-    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !overlay.hidden) close(); });
-
-    function closeBtn() {
-      var b = el("button", "order-modal-x", "×");
-      b.type = "button";
-      b.setAttribute("aria-label", "Close");
-      b.addEventListener("click", close);
-      return b;
-    }
-
-    function isMenuItem(item, menu) {
-      if (menu && menu.priced) return menu.byName.has(item);
-      return (window.MK_MENU || []).some(function (g) { return g.items.indexOf(item) !== -1; });
-    }
-
-    function goWebsite(item) {
-      MK.menu().then(function (m) {
-        if (isMenuItem(item, m)) MK.cart.setQty(item, MK.cart.qtyOf(item) + 1);
-      }, function () {}).then(function () { location.href = "order.html"; });
-    }
-
-    function showChoice(item) {
-      card.innerHTML = "";
-      card.appendChild(closeBtn());
-      card.appendChild(el("h3", "", "How would you like to order?"));
-      card.appendChild(el("p", "order-modal-item", item));
-      var web = el("button", "btn btn-dark", "Order on the website");
-      web.type = "button";
-      web.addEventListener("click", function () { goWebsite(item); });
-      var wa = el("button", "btn btn-wa", "Order on WhatsApp");
-      wa.type = "button";
-      wa.addEventListener("click", function () { showForm(item); });
-      card.appendChild(web);
-      card.appendChild(wa);
-      card.appendChild(el("p", "order-modal-note", "On the website you can track your order under My orders (sign in with your email)."));
-    }
-
-    function field(label, input) {
-      var wrap = el("div", "field");
-      var l = el("label", "", label);
-      wrap.appendChild(l);
-      wrap.appendChild(input);
-      return { wrap: wrap, input: input };
-    }
-    function input(type, name, ph) {
-      var i = el("input");
-      i.type = type; i.name = name; if (ph) i.placeholder = ph; i.maxLength = 120;
-      return i;
-    }
-
-    function showForm(item) {
-      var saved = store(function () { return JSON.parse(localStorage.getItem(DETAILS_KEY) || "{}"); }) || {};
-      card.innerHTML = "";
-      card.appendChild(closeBtn());
-      card.appendChild(el("h3", "", "Order on WhatsApp"));
-      card.appendChild(el("p", "order-modal-item", item));
-
-      var form = el("form", "order-modal-form");
-      form.noValidate = true;
-      var qty = field("Quantity / pack (e.g. 2 packs of 250 g)", input("text", "qty", "e.g. 2 × 250 g"));
-      var name = field("Name", input("text", "name"));
-      var phone = field("Phone (WhatsApp)", input("tel", "phone", "98765 43210"));
-      name.input.value = saved.name || "";
-      phone.input.value = saved.phone || "";
-
-      var ful = el("div", "field");
-      ful.appendChild(el("span", "label", "Pickup or delivery"));
-      var choice = el("div", "choice");
-      ["pickup", "delivery"].forEach(function (v) {
-        var lab = el("label");
-        var r = el("input");
-        r.type = "radio"; r.name = "fulfilment"; r.value = v;
-        r.checked = (saved.fulfilment || "pickup") === v;
-        lab.appendChild(r);
-        lab.appendChild(document.createTextNode(" " + (v === "pickup" ? "Pickup" : "Delivery")));
-        choice.appendChild(lab);
-      });
-      ful.appendChild(choice);
-
-      var pickupNote = el("p", "order-modal-note", "Pickup location: " + PICKUP);
-      var addr = el("textarea");
-      addr.name = "address"; addr.maxLength = 300;
-      addr.placeholder = "House no., street, area, city, PIN";
-      addr.value = saved.address || "";
-      var addrField = field("Delivery address", addr);
-      var charge = el("p", "order-modal-note", "Delivery charges apply. We'll confirm the charge with your final total.");
-      addrField.wrap.appendChild(charge);
-
-      var date = field("Preferred date (optional)", input("date", "date"));
-      var notes = el("textarea");
-      notes.name = "notes"; notes.maxLength = 300;
-      notes.placeholder = "Flavour preferences, sugar level, occasion…";
-      var notesField = field("Notes (optional)", notes);
-
-      function sync() {
-        var delivery = form.fulfilment.value === "delivery";
-        addrField.wrap.hidden = !delivery;
-        pickupNote.hidden = delivery;
-      }
-      form.addEventListener("change", sync);
-
-      var err = el("p", "form-error");
-      err.setAttribute("role", "alert");
-      var send = el("button", "btn btn-wa", "Send on WhatsApp");
-      send.type = "submit";
-      var back = el("button", "order-modal-back", "Back");
-      back.type = "button";
-      back.addEventListener("click", function () { showChoice(item); });
-
-      [qty.wrap, name.wrap, phone.wrap, ful, pickupNote, addrField.wrap, date.wrap, notesField.wrap, err, send, back]
-        .forEach(function (n) { form.appendChild(n); });
-      card.appendChild(form);
-      sync();
-
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var delivery = form.fulfilment.value === "delivery";
-        if (!name.input.value.trim() || !phone.input.value.trim()) {
-          err.textContent = "Please enter your name and phone number.";
-          return;
-        }
-        if (delivery && !addr.value.trim()) {
-          err.textContent = "Please enter your delivery address.";
-          return;
-        }
-        store(function () {
-          localStorage.setItem(DETAILS_KEY, JSON.stringify({
-            name: name.input.value.trim(), phone: phone.input.value.trim(),
-            address: addr.value.trim(), fulfilment: form.fulfilment.value
-          }));
-        });
-        var lines = [
-          "Hi Moon's Kitchen! I'd like to order " + item + ".",
-          ""
-        ];
-        if (qty.input.value.trim()) lines.push("Quantity: " + qty.input.value.trim());
-        lines.push("Name: " + name.input.value.trim());
-        lines.push("Phone: " + phone.input.value.trim());
-        if (delivery) {
-          lines.push("Delivery address: " + addr.value.trim());
-        } else {
-          lines.push("Pickup from: " + PICKUP);
-        }
-        if (date.input.value) lines.push("Preferred date: " + date.input.value);
-        if (notes.value.trim()) lines.push("Notes: " + notes.value.trim());
-        lines.push("", "Could you please share the price and availability?");
-        window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(lines.join("\n")), "_blank", "noopener");
-        close();
-      });
-    }
-
-    // Capture phase, so it runs before the link's own WhatsApp navigation.
-    document.addEventListener("click", function (e) {
-      var link = e.target.closest && e.target.closest("a.whatsapp-link");
-      if (!link) return;
-      var item = link.getAttribute("data-item") || "";
-      if (!item || item === "a chat") return; // plain "chat with us" goes straight to WhatsApp
-      e.preventDefault();
-      e.stopPropagation();
-      showChoice(item);
-      overlay.hidden = false;
-      document.body.style.overflow = "hidden";
-    }, true);
-  })();
-
-  /* ------------------------------------------------------------
-   * Image viewer: click any product photo to see it full size.
-   * Delegated, so cards rendered later (prices, menu) work too.
-   * ---------------------------------------------------------- */
-  (function () {
-    var box = document.createElement("div");
-    box.className = "lightbox";
-    box.hidden = true;
-    box.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button>' +
-      '<div class="lightbox-body"><img alt=""><div class="lightbox-info" hidden></div></div>';
-    document.body.appendChild(box);
-    var big = box.querySelector("img");
-    var info = box.querySelector(".lightbox-info");
-
-    function close() { box.hidden = true; document.body.style.overflow = ""; }
-    box.addEventListener("click", function (e) {
-      if (e.target.closest(".lightbox-info")) { info.classList.toggle("is-collapsed"); return; }
-      if (!e.target.closest(".lightbox-body")) close();
-    });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) close(); });
-
-    function findIngredients(name) {
-      var key = (name || "").trim().toLowerCase();
-      var list = window.MK_INGREDIENTS || [];
-      for (var i = 0; i < list.length; i++) {
-        for (var j = 0; j < list[i].names.length; j++) {
-          if (list[i].names[j].toLowerCase() === key) return list[i];
-        }
-      }
-      return null;
-    }
-
-    function showInfo(card) {
-      info.innerHTML = "";
-      info.hidden = true;
-      info.classList.remove("is-collapsed");
-      if (!card) return;
-      var h = card.querySelector("h3");
-      var btn = card.querySelector("[data-item]");
-      var entry = findIngredients(h && h.textContent) || findIngredients(btn && btn.getAttribute("data-item"));
-      if (!entry) return;
-      var title = document.createElement("h4");
-      title.textContent = (h && h.textContent.trim()) || entry.names[0];
-      info.appendChild(title);
-      if (entry.note) {
-        var note = document.createElement("p");
-        note.textContent = entry.note;
-        info.appendChild(note);
-      }
-      if (entry.ingredients.length) {
-        var label = document.createElement("strong");
-        label.textContent = "Ingredients";
-        info.appendChild(label);
-        var ul = document.createElement("ul");
-        entry.ingredients.forEach(function (t) {
-          var li = document.createElement("li");
-          li.textContent = t;
-          ul.appendChild(li);
-        });
-        info.appendChild(ul);
-      }
-      var hint = document.createElement("span");
-      hint.className = "lightbox-hint";
-      hint.textContent = "Tap here to hide / show the ingredients";
-      info.appendChild(hint);
-      info.hidden = false;
-    }
-
-    document.addEventListener("click", function (e) {
-      var img = e.target.closest && e.target.closest(".product-media img");
-      if (!img) return;
-      big.src = img.currentSrc || img.src;
-      big.alt = img.alt || "";
-      showInfo(img.closest(".product-card"));
-      box.hidden = false;
-      document.body.style.overflow = "hidden";
-    });
-  })();
 })();

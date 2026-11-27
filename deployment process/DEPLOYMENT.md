@@ -8,7 +8,7 @@ The folder is already linked to the Netlify site **moonskitchen**
 1. Open a terminal in the website folder:
 
    ```bash
-   cd "C:\Users\mohammad siddik\Documents\work on moonkitchen git\moonsKitchenWebsite"
+   cd "C:\Users\mohammad siddik\Documents\MoonsKitchenWebsite"
    ```
 
 2. (Optional) Test locally first. This costs no Netlify credits:
@@ -43,9 +43,8 @@ The folder is already linked to the Netlify site **moonskitchen**
 - **Passwords and keys live in the Netlify dashboard** (Site settings ->
   Environment variables), not in files. Examples: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `ADMIN_EMAILS`.
-- **Branches:** the live site is currently deployed from branch
-  `orders_reviews`. If Netlify is later connected to GitHub, merge to `main`
-  first, or Netlify will publish old code.
+- **Branches:** day-to-day work goes on `develop`. Merge it into `main`
+  through a pull request, then deploy from `main`.
 
 ## Preview before going live (optional)
 

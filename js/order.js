@@ -1,239 +1,326 @@
-/* Order page: item picker + cart + details form. */
+/* ============================================
+   Moon's Kitchen — ordering (index.html only)
+   1 Add to order buttons, 2 Build your own box,
+   3 Custom cakes. The cart itself is in cart.js and
+   is sent from the Order page (order.html). Load after
+   script.js and cart.js. Without this file, every Order
+   button still opens WhatsApp for that single item.
+   ============================================ */
+
 (function () {
   "use strict";
 
-  var esc = MK.esc;
-  var picker = document.getElementById("menuPicker");
-  var cartLines = document.getElementById("cartLines");
-  var cartTotal = document.getElementById("cartTotal");
-  var form = document.getElementById("orderForm");
-  var errorEl = document.getElementById("orderError");
-  var placeBtn = document.getElementById("placeBtn");
-  var addressField = document.getElementById("addressField");
-  var signInBox = document.getElementById("signInBox");
-  var DETAILS_KEY = "mk_order_details";
+  var MK = window.MoonsKitchen;
+  var cart = window.MKCart;
+  if (!MK || !cart) return;
 
-  function stepper(item) {
-    var qty = MK.cart.qtyOf(item);
-    return '<span class="stepper' + (qty ? "" : " is-zero") + '" data-item="' + esc(item) + '">' +
-      '<button type="button" data-step="-1" aria-label="One less ' + esc(item) + '">&minus;</button>' +
-      "<output>" + qty + "</output>" +
-      '<button type="button" data-step="1" aria-label="One more ' + esc(item) + '">+</button></span>';
+  /* ------------------------------------------------------------
+   * Settings — safe to edit
+   * ---------------------------------------------------------- */
+  var BOX_SIZES = [
+    { name: "Mini", picks: 4 },
+    { name: "Classic", picks: 6 },
+    { name: "Party", picks: 12 }
+  ];
+  // Sections whose items can go in a box
+  var BOX_SECTIONS = ["ragi-cookies", "ragi-special", "brownies", "classic-cookies"];
+
+  function byId(id) { return document.getElementById(id); }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
   }
 
-  // Live menu (prices); null until loaded. Falls back to the built-in item
-  // list without prices when nothing is priced yet.
-  var liveMenu = null;
+  function sendWhatsApp(lines) {
+    window.open(MK.whatsappUrl(lines.filter(Boolean).join("\n")), "_blank", "noopener");
+  }
 
-  function groups() {
-    if (liveMenu && liveMenu.priced) {
-      var order = [];
-      var byCat = {};
-      liveMenu.products.forEach(function (p) {
-        if (!byCat[p.category]) { byCat[p.category] = []; order.push(p.category); }
-        byCat[p.category].push(p.name);
-      });
-      return order.map(function (c) { return { category: c, items: byCat[c] }; });
+  // yyyy-mm-dd in the visitor's own time zone
+  function isoToday() {
+    var d = new Date();
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+
+  function prettyDate(value) {
+    var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+    return p ? p[3] + "-" + p[2] + "-" + p[1] : "";
+  }
+
+  document.querySelectorAll("[data-min-today]").forEach(function (input) { input.min = isoToday(); });
+
+  /* ------------------------------------------------------------
+   * 1. Add to order — product cards keep their WhatsApp Order button
+   *    and get "+ Add to order" under it; flavour tiles add instead of
+   *    opening WhatsApp. Once added, the button becomes − qty + with
+   *    Remove, so a second tap never adds by accident.
+   * ---------------------------------------------------------- */
+  var controls = [];
+
+  function say(text) { byId("cartLive").textContent = text + " " + cart.count() + " in your order."; }
+
+  function button(className, text, label, onClick) {
+    var b = el("button", className, text);
+    b.type = "button";
+    b.setAttribute("aria-label", label);
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  function makeControl(item) {
+    var box = el("div", "add-wrap");
+    var add = button("add-btn", "+ Add to order", "Add " + item + " to your order", function () {
+      cart.setQty(item, 1);
+      say(item + " added.");
+      plus.focus({ preventScroll: true });
+      nudgeSignIn();
+    });
+    var row = el("div", "add-row");
+    var step = el("span", "stepper");
+    var minus = button("", "−", "One less " + item, function () { change(cart.qtyOf(item) - 1); });
+    var out = el("output", "", "0");
+    var plus = button("", "+", "One more " + item, function () { change(cart.qtyOf(item) + 1); });
+    var remove = button("remove-btn", "Remove", "Remove " + item + " from your order", function () { change(0); });
+    function change(qty) {
+      cart.setQty(item, qty);
+      say(qty > 0 ? item + ": " + qty + "." : item + " removed.");
+      if (qty < 1) add.focus({ preventScroll: true });
     }
-    return window.MK_MENU;
+    [minus, out, plus].forEach(function (n) { step.appendChild(n); });
+    row.appendChild(step);
+    row.appendChild(remove);
+    box.appendChild(add);
+    box.appendChild(row);
+    controls.push(function () {
+      var qty = cart.qtyOf(item);
+      add.hidden = qty > 0;
+      row.hidden = qty === 0;
+      out.textContent = qty;
+      box.parentNode.classList.toggle("is-added", qty > 0);
+    });
+    return box;
   }
 
-  function productOf(item) {
-    return liveMenu && liveMenu.priced ? liveMenu.byName.get(item) : null;
-  }
-
-  function renderPicker() {
-    picker.innerHTML = groups().map(function (group) {
-      return '<div class="menu-group"><h3>' + esc(group.category) + "</h3>" +
-        group.items.map(function (item) {
-          var p = productOf(item);
-          return '<div class="pick-row"><span>' + esc(item) +
-            (p ? '<small class="pack">' + esc(MK.pack(p)) + "</small>" : "") + "</span>" + stepper(item) + "</div>";
-        }).join("") + "</div>";
-    }).join("");
-  }
-
-  // Drops cart items that are no longer for sale (hidden or unpriced).
-  function pruneCart() {
-    if (!liveMenu || !liveMenu.priced) return [];
-    var removed = MK.cart.read().filter(function (l) { return !productOf(l.item); });
-    if (removed.length) {
-      MK.cart.write(MK.cart.read().filter(function (l) { return productOf(l.item); }));
-    }
-    return removed.map(function (l) { return l.item; });
-  }
-
-  function renderCart() {
-    var lines = MK.cart.read();
-    var total = 0;
-    var allPriced = lines.length > 0;
-    cartLines.innerHTML = lines.length
-      ? lines.map(function (l) {
-          var p = productOf(l.item);
-          if (p) total += p.price * l.qty; else allPriced = false;
-          return '<div class="cart-row"><span>' + esc(l.item) +
-            (p ? '<small class="pack">' + esc(l.qty > 1 && p.pack_size != null
-              ? l.qty + " × " + MK.size(p.pack_size, p.unit) + " = " + MK.size(p.pack_size * l.qty, p.unit)
-              : MK.size(p.pack_size, p.unit)) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>" : "") +
-            "</span>" + stepper(l.item) + "</div>";
-        }).join("")
-      : '<p class="cart-empty">Nothing yet &mdash; <a href="#pickTitle">choose items from the menu</a>.</p>';
-    cartTotal.textContent = MK.cart.count();
-    var totalRow = document.getElementById("cartMoney");
-    totalRow.hidden = !allPriced;
-    document.getElementById("cartMoneyValue").textContent = MK.money(total);
-    document.getElementById("priceNote").textContent = allPriced
-      ? "Estimated total. We'll confirm it with you (delivery charges, if any, are added then). Pay on pickup/delivery."
-      : "Price on confirmation · pay on pickup/delivery.";
-  }
-
-  function renderAll() {
-    renderPicker();
-    renderCart();
-  }
-
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest(".stepper button");
-    if (!btn) return;
-    var item = btn.closest(".stepper").getAttribute("data-item");
-    MK.cart.setQty(item, MK.cart.qtyOf(item) + Number(btn.getAttribute("data-step")));
-  });
-  document.addEventListener("mk:cart", renderAll);
-
-  /* ---------- Details form ---------- */
-
-  function syncAddress() {
-    var delivery = form.fulfilment.value === "delivery";
-    addressField.hidden = !delivery;
-    document.getElementById("pickupAddress").hidden = delivery;
-  }
-  form.addEventListener("change", syncAddress);
-
-  // Earliest selectable date = today.
-  var today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  form.preferred_date.min = today;
-
-  // Remember name/phone/address on this device for next time (convenience only).
-  try {
-    var saved = JSON.parse(localStorage.getItem(DETAILS_KEY) || "{}");
-    ["name", "phone", "address"].forEach(function (k) { if (saved[k]) form[k].value = saved[k]; });
-    if (saved.fulfilment) form.fulfilment.value = saved.fulfilment;
-  } catch (e) {}
-  syncAddress();
-
-  MK.session().then(function (s) {
-    document.querySelectorAll("[data-admin-only]").forEach(function (el) { el.hidden = !s.isAdmin; });
-    if (!s.loggedIn) {
-      signInBox.hidden = false;
-      document.getElementById("signInLink").href = MK.loginUrl();
-      placeBtn.textContent = "Sign in to place order";
-      // Pickup/delivery is offered once the customer is signed in.
-      form.fulfilment[0].closest(".field").hidden = true;
-      addressField.hidden = true;
-      addressField.setAttribute("data-signed-out", "");
-    }
+  document.querySelectorAll(".product-card .order-btn[data-item]").forEach(function (waBtn) {
+    waBtn.insertAdjacentElement("afterend", makeControl(waBtn.getAttribute("data-item")));
   });
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    errorEl.textContent = "";
-
-    MK.session().then(function (s) {
-      if (!s.loggedIn) {
-        location.href = MK.loginUrl();
-        return;
-      }
-      var items = MK.cart.read();
-      if (!items.length) {
-        errorEl.textContent = "Add at least one item to your order.";
-        return;
-      }
-      var body = {
-        items: items,
-        name: form.name.value,
-        phone: form.phone.value,
-        fulfilment: form.fulfilment.value,
-        address: form.address.value,
-        preferred_date: form.preferred_date.value,
-        notes: form.notes.value
-      };
-
-      placeBtn.disabled = true;
-      placeBtn.textContent = "Placing order…";
-      MK.api("orders", { method: "POST", body: body })
-        .then(function (data) {
-          try {
-            localStorage.setItem(DETAILS_KEY, JSON.stringify({
-              name: body.name, phone: body.phone, address: body.address, fulfilment: body.fulfilment
-            }));
-          } catch (err) {}
-          showPlaced(data.order.id, body);
-          MK.cart.clear();
-        })
-        .catch(function (err) {
-          errorEl.textContent = err.message;
-        })
-        .finally(function () {
-          placeBtn.disabled = false;
-          placeBtn.textContent = "Place order";
-        });
+  document.querySelectorAll(".tile[data-item]").forEach(function (tile) {
+    var item = tile.getAttribute("data-item");
+    var cta = tile.querySelector(".tile-cta");
+    if (!cta) return;
+    tile.classList.remove("whatsapp-link");
+    tile.removeAttribute("href");
+    tile.removeAttribute("target");
+    tile.removeAttribute("rel");
+    cta.replaceWith(makeControl(item));
+    // Tapping the photo adds the first one only
+    tile.addEventListener("click", function (e) {
+      if (e.target.closest(".add-wrap") || cart.qtyOf(item)) return;
+      cart.setQty(item, 1);
+      say(item + " added.");
+      nudgeSignIn();
     });
   });
 
-  // Order summary shown on the confirmation: items, total, pickup/delivery.
-  function summaryHtml(body) {
-    var total = 0;
-    var allPriced = body.items.length > 0;
-    var rows = body.items.map(function (l) {
-      var p = productOf(l.item);
-      var detail = "";
-      if (p) {
-        total += p.price * l.qty;
-        var size = l.qty > 1 && p.pack_size != null
-          ? l.qty + " × " + MK.size(p.pack_size, p.unit) + " = " + MK.size(p.pack_size * l.qty, p.unit)
-          : MK.size(p.pack_size, p.unit);
-        detail = '<small class="pack">' + esc(size) + " &middot; " + esc(MK.money(p.price * l.qty)) + "</small>";
-      } else {
-        allPriced = false;
-        detail = '<small class="pack">Qty ' + l.qty + "</small>";
+  function paintControls() { controls.forEach(function (paint) { paint(); }); }
+  document.addEventListener("mk:cart", paintControls);
+  paintControls();
+
+  /* ------------------------------------------------------------
+   * 1b. Sign-in popup — after the first item a signed-out visitor
+   *     adds, suggest signing in so the order can be saved. Never
+   *     forced: "Continue without signing in" closes it and the item
+   *     stays in the basket. Shown once per visit (sessionStorage).
+   * ---------------------------------------------------------- */
+  var NUDGE_KEY = "mk_signin_nudge";
+  var signedIn = null; // null = not known yet, so no popup
+
+  if (location.protocol !== "file:") {
+    fetch("/.netlify/functions/session", { credentials: "same-origin" })
+      .then(function (res) { return res.ok ? res.json() : {}; })
+      .then(function (data) { signedIn = !!data.loggedIn; })
+      .catch(function () { /* functions unavailable: leave the popup off */ });
+  }
+
+  function nudgeSeen() {
+    try { return sessionStorage.getItem(NUDGE_KEY) === "1"; } catch (e) { return true; }
+  }
+
+  function nudgeSignIn() {
+    if (signedIn !== false || nudgeSeen()) return;
+    var dlg = document.createElement("dialog");
+    if (typeof dlg.showModal !== "function") return;
+    try { sessionStorage.setItem(NUDGE_KEY, "1"); } catch (e) { /* private mode */ }
+
+    dlg.className = "signin-nudge";
+    dlg.setAttribute("aria-labelledby", "nudgeTitle");
+    dlg.appendChild(el("p", "nudge-title", "Added to your basket ✓")).id = "nudgeTitle";
+    dlg.appendChild(el("p", "", "Sign in with your email to save your orders and follow them under My orders. You can also just order on WhatsApp."));
+    var actions = el("div", "nudge-actions");
+    var signIn = el("a", "btn btn-dark", "Sign in");
+    signIn.href = "login.html?next=" + encodeURIComponent(location.pathname + location.search);
+    var skip = button("btn nudge-skip", "Continue without signing in", "Continue without signing in", function () { dlg.close(); });
+    actions.appendChild(signIn);
+    actions.appendChild(skip);
+    dlg.appendChild(actions);
+
+    // Tap outside the box closes it too
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener("close", function () { dlg.remove(); });
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    skip.focus();
+  }
+
+  /* ------------------------------------------------------------
+   * 2. Build your own box — items are read from the menu on the
+   *    page, so a new product appears here automatically
+   * ---------------------------------------------------------- */
+  var boxRoot = byId("boxBuilder");
+  if (boxRoot) {
+    var sizesEl = byId("boxSizes");
+    var slotsEl = byId("boxSlots");
+    var itemsEl = byId("boxItems");
+    var statusEl = byId("boxStatus");
+    var boxAdd = byId("boxAdd");
+    var size = BOX_SIZES[1];
+    var picks = []; // [{ name, node }]
+
+    var boxCount = function () {
+      statusEl.textContent = picks.length === size.picks
+        ? "Your box is full. Add it to your order!"
+        : picks.length + " of " + size.picks + " picked";
+      boxAdd.disabled = picks.length !== size.picks;
+      itemsEl.querySelectorAll("button").forEach(function (b) { b.disabled = picks.length >= size.picks; });
+    };
+
+    // A picture for the slot: the item's photo if it has one, else its emoji
+    var picture = function (node) {
+      var img = node.querySelector("img");
+      if (img) {
+        var copy = new Image();
+        copy.sizes = "120px";
+        copy.srcset = img.srcset;
+        copy.src = img.src;
+        copy.alt = "";
+        return copy;
       }
-      return '<div class="cart-row"><span>' + esc(l.item) + detail + "</span></div>";
-    }).join("");
+      var media = node.querySelector(".tile-media, .product-media");
+      var text = "";
+      Array.prototype.forEach.call((media || node).childNodes, function (n) {
+        if (n.nodeType === 3) text += n.textContent.trim();
+      });
+      return el("span", "slot-emoji", text || "🍪");
+    };
 
-    var html = '<div class="placed-summary">' + rows;
-    if (allPriced) {
-      html += '<div class="cart-total cart-money"><span>Estimated total</span><span>' + esc(MK.money(total)) + "</span></div>";
-    }
-    if (body.fulfilment === "delivery") {
-      html += "<p><strong>Delivery to:</strong><br />" + esc(body.address).replace(/\n/g, "<br />") + "</p>" +
-        "<p><strong>Delivery charges apply</strong> &mdash; we'll confirm the charge with your final total.</p>";
-    } else {
-      html += "<p><strong>Pickup from:</strong><br />Amalapuram, BlackBridge Road,<br />" +
-        "East Godavari District (Konaseema), Andhra Pradesh &ndash; 533201</p>";
-    }
-    if (body.preferred_date) html += "<p><strong>Preferred date:</strong> " + esc(body.preferred_date) + "</p>";
-    return html + "</div>";
+    var renderBox = function () {
+      slotsEl.textContent = "";
+      slotsEl.setAttribute("data-size", size.picks);
+      for (var i = 0; i < size.picks; i++) {
+        var pick = picks[i];
+        var li = el("li");
+        if (pick) {
+          var b = el("button", "slot is-filled");
+          b.type = "button";
+          b.title = pick.name;
+          b.setAttribute("aria-label", "Remove " + pick.name);
+          b.setAttribute("data-i", i);
+          b.appendChild(picture(pick.node));
+          li.appendChild(b);
+        } else {
+          li.appendChild(el("span", "slot"));
+        }
+        slotsEl.appendChild(li);
+      }
+      boxCount();
+    };
+
+    slotsEl.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-i]");
+      if (!b) return;
+      var i = Number(b.getAttribute("data-i"));
+      picks.splice(i, 1);
+      renderBox();
+      var left = slotsEl.querySelectorAll(".is-filled");
+      if (left.length) left[Math.min(i, left.length - 1)].focus();
+    });
+
+    BOX_SIZES.forEach(function (s) {
+      var b = el("button", "chip");
+      b.type = "button";
+      b.appendChild(el("strong", "", s.name));
+      b.appendChild(document.createTextNode(" " + s.picks + " picks"));
+      b.setAttribute("aria-pressed", String(s === size));
+      b.addEventListener("click", function () {
+        size = s;
+        picks = picks.slice(0, s.picks);
+        sizesEl.querySelectorAll("button").forEach(function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+        renderBox();
+      });
+      sizesEl.appendChild(b);
+    });
+
+    BOX_SECTIONS.forEach(function (id) {
+      var section = byId(id);
+      if (!section) return;
+      var heading = section.querySelector("h2, h3");
+      var group = el("div", "box-group");
+      group.appendChild(el("h4", "", heading ? heading.textContent : ""));
+      var chips = el("div", "chips");
+      section.querySelectorAll(".order-btn[data-item], .tile[data-item]").forEach(function (node) {
+        var name = node.getAttribute("data-item");
+        var source = node.closest(".product-card") || node;
+        var b = el("button", "chip", "+ " + name.replace(/^Ragi Special – /, "").replace(/ \(.*\)$/, ""));
+        b.type = "button";
+        b.setAttribute("aria-label", "Put " + name + " in the box");
+        b.addEventListener("click", function () {
+          if (picks.length >= size.picks) return;
+          picks.push({ name: name, node: source });
+          renderBox();
+        });
+        chips.appendChild(b);
+      });
+      group.appendChild(chips);
+      itemsEl.appendChild(group);
+    });
+
+    byId("boxReset").addEventListener("click", function () { picks = []; renderBox(); });
+
+    boxAdd.addEventListener("click", function () {
+      if (picks.length !== size.picks) return;
+      var counts = {};
+      picks.forEach(function (p) { counts[p.name] = (counts[p.name] || 0) + 1; });
+      var parts = Object.keys(counts).sort().map(function (n) { return n + " ×" + counts[n]; });
+      var box = size.name + " box of " + size.picks + " (" + parts.join(", ") + ")";
+      cart.setQty(box, cart.qtyOf(box) + 1);
+      location.href = "order.html";
+    });
+
+    renderBox();
   }
 
-  function showPlaced(id, body) {
-    var box = document.getElementById("placed");
-    box.innerHTML =
-      "<p><strong>Thank you! Your order #" + esc(id) + " has been received.</strong></p>" +
-      summaryHtml(body) +
-      "<p>We'll confirm the price and timing soon &mdash; you can follow it under My orders.</p>" +
-      '<a href="my-orders.html" class="btn btn-dark btn-sm btn-inline">View my orders</a>';
-    box.hidden = false;
-    document.getElementById("orderGrid").hidden = true;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  /* ------------------------------------------------------------
+   * 3. Custom cake enquiry
+   * ---------------------------------------------------------- */
+  var cakeForm = byId("cakeForm");
+  if (cakeForm) {
+    cakeForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = cakeForm.elements;
+      var val = function (n) { return f[n].value.trim(); };
+      sendWhatsApp([
+        "Hi Moon's Kitchen! I'd like to ask about a custom cake:",
+        "Occasion: " + val("occasion"),
+        "Needed on: " + prettyDate(f.date.value),
+        val("weight") && "Weight: " + val("weight"),
+        val("flavour") && "Flavour: " + val("flavour"),
+        val("message") && "Message on cake: " + val("message"),
+        val("note") && "Notes: " + val("note"),
+        "Could you please share the price and availability?"
+      ]);
+    });
   }
-
-  renderAll();
-  MK.menu().then(function (m) {
-    liveMenu = m;
-    var removed = pruneCart();
-    if (removed.length) {
-      errorEl.textContent = "Removed from your order (not available right now): " + removed.join(", ") + ".";
-    }
-    renderAll();
-  });
 })();

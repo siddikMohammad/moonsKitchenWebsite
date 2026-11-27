@@ -49,7 +49,15 @@
   function getRedirectTarget() {
     var params = new URLSearchParams(window.location.search);
     var next = params.get("next");
-    return next && next.startsWith("/") ? next : "/";
+    if (!next) return "/";
+    // Only ever go to a page on this site. Values like "//other.com" also
+    // start with "/", so compare the resolved origin instead.
+    try {
+      var url = new URL(next, window.location.origin);
+      return url.origin === window.location.origin ? url.href : "/";
+    } catch (e) {
+      return "/";
+    }
   }
 
   function requestOtp(email) {
